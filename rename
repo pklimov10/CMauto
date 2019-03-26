@@ -1,0 +1,18 @@
+---
+- hosts: all
+  remote_user: root
+  become: no
+  become_method: sudo
+  vars:
+    LOCAL_HOSTNAME: 'имя сервера'
+    LOCAL_FQDN_NAME: 'имя сервера '
+  tasks:
+    - name: Set up a unique hostname
+      hostname: name={{ LOCAL_HOSTNAME }}
+    - name: Add the server's domain to the hosts file
+      lineinfile: dest=/etc/hosts
+        regexp='.*{{ item }}$'
+        line="{{ hostvars[item].ansible_default_ipv4.address }} {{ LOCAL_FQDN_NAME }} {{ LOCAL_HOSTNAME }}"
+        state=present
+      when: hostvars[item].ansible_default_ipv4.address is defined
+      with_items: "{{ groups['control'] }}"
