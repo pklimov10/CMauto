@@ -1,0 +1,28 @@
+- hosts: all
+  user: root
+  tasks:
+    - name: Add RPMForge repo
+      yum: name=http://repository.it4i.cz/mirrors/repoforge/redhat/el7/en/x86_64/rpmforge/RPMS/rpmforge-release-0.5.3-1.el7.rf.x86_64.rpm
+
+    - name: Software install
+      yum: name={{item}} state=latest
+      with_items:
+        - yum-priorities
+        - htop
+        - mc
+        - nano
+        - ntsysv
+        - wget
+        - vim
+        - ntpdate
+        - yum-utils
+        - yum-remove-with-leaves
+        - epel-release
+        - rsync
+        - python-pip
+    - name: Update system
+      yum: name='*'
+    - name: Disable SELinux
+      selinux: state=disabled
+
+
