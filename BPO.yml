@@ -20,9 +20,9 @@
         - epel-release
         - rsync
         - python-pip
+        - gzip
+        - tmux
     - name: Update system
       yum: name='*'
     - name: Disable SELinux
       selinux: state=disabled
-
-
