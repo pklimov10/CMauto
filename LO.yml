@@ -1,0 +1,31 @@
+---
+- hosts: LO
+  remote_user: root
+  vars:
+    download_folder: /opt
+    lo_name: "{{download_folder}}/LibreOffice_4.4.7.2_Linux_x86-64_rpm"
+    lo_archive: "{{download_folder}}/LibreOffice_4.4.7.2_Linux_x86-64_rpm.tar.gz"
+
+  tasks:
+    - name: Download LO
+      synchronize:
+        src: /root/LibreOffice_4.4.7.2_Linux_x86-64_rpm.tar.gz
+        dest: /opt/ creates={{lo_archive}}
+      delegate_to: 192.168.177.162
+
+    - name: Unpack archive
+      command: "tar -zxf {{lo_archive}} -C {{download_folder}} "
+
+    - name: LO install
+      yum: name={{item}} state=latest
+      with_fileglob:
+        - "{{lo_name}}/RPMS/*.rpm"
+
+    - name: Clean up
+      file: state=absent path={{lo_archive}}
+
+
+
+
+
+
