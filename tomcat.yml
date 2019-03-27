@@ -6,6 +6,7 @@
     lo_name: "{{download_folder}}/LibreOffice_4.4.7.2_Linux_x86-64_rpm"
     lo_archive: "{{download_folder}}/LibreOffice_4.4.7.2_Linux_x86-64_rpm"
     TOMCAT_HOME: /usr/share/tomcat
+    TOMCAT_CONF: /tmconf
 
   tasks:
     - name: Download LO
@@ -25,11 +26,11 @@
     - name: tomcat install
       yum: name={{item}} state=latest
       with_items:
-          - tomcat
-          - tomcat-webapps
-          - tomcat-admin-webapps
-          - tomcat-docs-webapp
-          - tomcat-javadoc
+        - tomcat
+        - tomcat-webapps
+        - tomcat-admin-webapps
+        - tomcat-docs-webapp
+        - tomcat-javadoc
 
     - block:
         - name: "Checking folders"
@@ -37,7 +38,7 @@
             path: "{{item}}"
           register: folder_stats
           with_items:
-            - ["{{TOMCAT_HOME}}/cmjapps/conf/medo","{{TOMCAT_HOME}}/cmjapps/wars"]
+            - ["{{TOMCAT_HOME}}/cmjapps/conf/medo","{{TOMCAT_HOME}}/cmjapps/wars","{{TOMCAT_HOME}}/Converter/conf"]
         - name: "Creating multiple folders tomcat"
           file:
             path: "{{item.item}}"
@@ -49,4 +50,53 @@
           with_items:
             - "{{folder_stats.results}}"
 
+    - name: Download Conf sedsvc-war
+      synchronize:
+        src: /tmconf/sedsvc-war.xml
+        dest: "{{TOMCAT_HOME}}/conf/Catalina/localhost/"
+      delegate_to: 192.168.177.162
 
+    - name: Download war
+      synchronize:
+        src: /tmconf/sedsvc-war-2.1.49.war
+        dest: "{{TOMCAT_HOME}}/cmjapps/wars/"
+      delegate_to: 192.168.177.162
+
+    - name: Download catalina
+      synchronize:
+        src: /tmconf/catalina.policy
+        dest: "{{TOMCAT_HOME}}/conf/"
+      delegate_to: 192.168.177.162
+
+    - name: Download sedsvc-default
+      synchronize:
+        src: /tmconf/sedsvc-defaults.properties
+        dest: "{{TOMCAT_HOME}}/cmjapps/conf/medo/"
+      delegate_to: 192.168.177.162
+
+    - name: Download server
+      synchronize:
+        src: /tmconf/server.xml
+        dest: "{{TOMCAT_HOME}}/conf/"
+      delegate_to: 192.168.177.162
+
+    - name: Download Converter
+      synchronize:
+        src: /tmconf/server.xml
+        dest: "{{TOMCAT_HOME}}/Converter/conf/"
+      delegate_to: 192.168.177.162
+
+    - name: Download Converter
+      synchronize:
+        src: /tmconf/catalina.policy
+        dest: "{{TOMCAT_HOME}}/Converter/conf/"
+      delegate_to: 192.168.177.162
+
+    - name: chown
+      command: "chown -fR tomcat:tomcat {{TOMCAT_HOME}}/ "
+
+    - name: chown_test
+      command: "chown -fR tomcat:tomcat {{TOMCAT_HOME}}/ "
+
+    - name: tomcat restart
+      service: name=tomcat state=restarted
