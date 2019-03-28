@@ -1,0 +1,14 @@
+- hosts: postgres
+  user: root
+  tasks:
+    - name:  updating postgres repo
+      yum:
+        name: https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-centos10-10-2.noarch.rpm
+        # 11 name: https://yum.postgresql.org/11/redhat/rhel-7-x86_64/pgdg-centos11-11-2.noarch.rpm
+        state: latest
+    - name: Postgres install
+      yum: name={{item}} state=latest
+      with_items:
+        - postgresql10
+        - postgresql10-server
+        - postgresql-contrib

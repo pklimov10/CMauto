@@ -1,0 +1,38 @@
+- hosts: all
+  user: root
+  vars:
+    IP_MASER: 192.168.177.151
+  tasks:
+    - name: installing centos-release-gluster
+      yum:
+        name: centos-release-gluster
+        state: latest
+
+    - name: installing glusterfs-client
+      yum:
+        name: glusterfs-client
+        state: latest
+
+    - name: firewalld stop
+      service: name=firewalld state=stopped
+
+    - block:
+        - name: "Checking folders"
+          stat:
+            path: "{{item}}"
+          register: folder_stats
+          with_items:
+            - [/local/cm-data/attachments]
+        - name: "Creating multiple folders attachments"
+          file:
+            path: "{{item.item}}"
+            state: directory
+            mode: 0755
+            group: root
+            owner: root
+          when: item.stat.exists == false
+          with_items:
+            - "{{folder_stats.results}}"
+    - name: mount
+      command: "mount.glusterfs {{IP_MASER}}:/replicated /local/cm-data/attachments"
+

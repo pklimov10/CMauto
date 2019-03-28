@@ -1,0 +1,57 @@
+- hosts: GlusterFS
+  user: root
+  vars:
+    IP_MASER: 192.168.177.151
+    IP_MASER1: 192.168.177.151
+  tasks:
+    - name: installing centos-release-gluster
+      yum:
+        name: centos-release-gluster
+        state: latest
+
+    - name: installing glusterfs-server
+      yum:
+        name: glusterfs-server
+        state: latest
+
+    - name: firewalld stop
+      service: name=firewalld state=stopped
+
+    - name: glusterd start
+      service: name=glusterd state=started
+
+    - name: gluster peer probe
+      command: "gluster peer probe {{IP_MASER}}"
+
+    - name: gluster peer status
+      command: gluster peer status
+
+    - block:
+        - name: "Checking folders"
+          stat:
+            path: "{{item}}"
+          register: folder_stats
+          with_items:
+            - [/opt/cm-data/attachments]
+        - name: "Creating multiple folders attachments"
+          file:
+            path: "{{item.item}}"
+            state: directory
+            mode: 0755
+            group: root
+            owner: root
+          when: item.stat.exists == false
+          with_items:
+            - "{{folder_stats.results}}"
+
+    - name: gluster  volume
+      command: "gluster volume create replicated replica 2 transport tcp {{IP_MASER}}:/opt/cm-data/attachments {{IP_MASER1}}:/opt/cm-data/attachments force"
+
+    - name: start replicated
+      command: gluster volume start replicated
+
+
+
+
+
+
