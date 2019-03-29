@@ -1,0 +1,43 @@
+---
+- hosts: solr
+  remote_user: root
+  vars:
+    download_folder: /opt
+    solr_archive: "{{download_folder}}/solr-4.5.1.tgz"
+    delegate_IP: 192.168.177.162
+
+  tasks:
+    - name: Download solr
+      synchronize:
+        src: /root/solr-4.5.1.tgz
+        dest: /opt/
+      delegate_to: "{{delegate_IP}}"
+
+    - name: Unpack archive
+      command: "tar -zxf {{solr_archive}} -C {{download_folder}}"
+
+    - name: MV
+      command: mv /opt/solr-4.5.1 /opt/solr
+
+    - name: MV
+      command: mv /opt/solr/example /opt/solr/core
+
+    - name: Download conf
+      synchronize:
+        src: /root/solr
+        dest: /etc/init.d/
+      delegate_to: "{{delegate_IP}}"
+
+    - name: chmod
+      command: chmod +x /etc/init.d/solr
+
+    - name: chkconfig
+      command: chkconfig --add solr
+
+    - name: start
+      command: /etc/init.d/solr start
+
+
+
+
+
