@@ -43,15 +43,12 @@
           when: item.stat.exists == false
           with_items:
             - "{{folder_stats.results}}"
-
+#Добавлена перменная для создания репликации только на 1 сервере исключая каллизии
+- hosts: GlusterFS_master
+  user: root
+  task:
     - name: gluster  volume
       command: "gluster volume create replicated replica 2 transport tcp {{IP_MASER}}:/opt/cm-data/attachments {{IP_MASER1}}:/opt/cm-data/attachments force"
 
     - name: start replicated
       command: gluster volume start replicated
-
-
-
-
-
-

@@ -19,7 +19,7 @@
     - name: MV
       command: mv /opt/solr-4.5.1 /opt/solr
 
-    - name: MV
+    - name: MV_example
       command: mv /opt/solr/example /opt/solr/core
 
     - name: Download conf
