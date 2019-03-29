@@ -49,7 +49,7 @@
 
     - name: start replicated
       command: gluster volume start replicated
-
+jj
 
 
 
