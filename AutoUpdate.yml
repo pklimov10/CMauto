@@ -32,6 +32,9 @@
   hosts: WF
   user: root
   vars:
+    ear: "{{ lookup('pipe', 'ls -1 /opt/update/*.ear') }}"
+    ear_dir: "{{ lookup('pipe', 'ls -1 /opt/wildfly/standalone/deployments/*.ear') }}"
+    ear_dir_deployed: "{{ lookup('pipe', '/opt/wildfly/standalone/deployments/*.ear.deployed') }}"
     download_ear: /mnt/yadisk/admsev/sev
     download_war: /mnt/yadisk/admsev/war
     download_sed_svc: /mnt/yadisk/admsev/sed
@@ -41,17 +44,18 @@
   tasks:
 
     - name: Check if the ear.
-      command: /usr/bin/test -e {{download_ear}}/*.ear
+      command: "/usr/bin/test -e {{ear}}"
       ignore_errors: True
       register: ear_exists
 
     - name: Clean up.
-      file: state=absent path={{{WF_DIR}}/cm5div6*
+      file: state=absent path={{ear_dir}}
+      ignore_errors: True
       when: ear_exists.rc != 1
 
     - name: Download ear.
       synchronize:
-        src: "{{download_ear}}/*.ear"
+        src: "{{ear}}"
         dest: "{{WF_DIR}}/"
       delegate_to: "{{delegate_IP}}"
       when: ear_exists.rc != 1
@@ -60,10 +64,14 @@
       service: name=wildfly state=started
       when: ear_exists.rc != 1
 
-    - name: Wait until the file /tmp/foo is present before continuing
-      wait_for:
-        path: "{{WF_DIR}}/*ear.deployed"
-      when: ear_exists.rc != 1
+    - name: "wait for ABC to come up"
+      uri:
+        url: "http://192.168.0.147:8080/cm5div6"
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 1500
+      delay: 1
 
 
 
