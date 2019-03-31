@@ -4,14 +4,14 @@
     - name: wf stop
       service: name=wildfly state=stopped
 
-- hosts: WF_target
+- hosts: WF_TARGET
   user: root
   tasks:
     - name: wf stop
       service: name=wildfly state=stopped
 
 #переменые
-- hosts: PG
+- hosts: PG_CM5
   user: root
   vars:
     CM5_PG_DIR: /opt/cm-sochi/backup
@@ -21,9 +21,9 @@
     - name: PG_DUMP_CM5
       become: yes
       become_user: postgres
-      command: "pg_dump --port 5432 --username 'postgres' --role 'postgres' --format directory --blobs --no-privileges --no-tablespaces --verbose --no-unlogged-table-data --jobs=48 --file '{{CM5_PG_DIR}}/CM5-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}' '1'"
+      command: "pg_dump --port 5432 --username 'postgres' --role 'postgres' --format directory --blobs --no-privileges --no-tablespaces --verbose --no-unlogged-table-data --jobs=48 --file '{{CM5_PG_DIR}}/CM5-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}' 'cm5'"
 
-- hosts: PG
+- hosts: PG_CMJ
   user: root
   vars:
     CMJ_PG_DIR: /opt/cm-sochi/backup
@@ -32,7 +32,7 @@
     - name: PG_DUMP_CMJ
       become: yes
       become_user: postgres
-      command: "pg_dump --port 5432 --username 'postgres' --role 'postgres' --format directory --blobs --no-privileges --no-tablespaces --verbose --no-unlogged-table-data --jobs=48 --file '{{CMJ_PG_DIR}}/CMj-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}' '2'"
+      command: "pg_dump --port 5432 --username 'postgres' --role 'postgres' --format directory --blobs --no-privileges --no-tablespaces --verbose --no-unlogged-table-data --jobs=48 --file '{{CMJ_PG_DIR}}/CMJ-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}' 'cmj'"
 
 #ищем ear если он есть то обновляем его
 - name: Update WF_master
@@ -81,7 +81,7 @@
 
 
 - name: WFslave
-  hosts: WF
+  hosts: WF_TARGET
   user: root
 
   vars:
