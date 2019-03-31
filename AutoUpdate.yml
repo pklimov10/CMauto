@@ -3,6 +3,13 @@
   tasks:
     - name: wf stop
       service: name=wildfly state=stopped
+
+- hosts: WF_target
+  user: root
+  tasks:
+    - name: wf stop
+      service: name=wildfly state=stopped
+
 #переменые
 - hosts: PG
   user: root
@@ -34,12 +41,9 @@
   vars:
     ear: "{{ lookup('pipe', 'ls -1 /opt/update/*.ear') }}"
     ear_dir: "{{ lookup('pipe', 'ls -1 /opt/wildfly/standalone/deployments/*.ear') }}"
-    ear_dir_deployed: "{{ lookup('pipe', '/opt/wildfly/standalone/deployments/*.ear.deployed') }}"
     download_ear: /mnt/yadisk/admsev/sev
-    download_war: /mnt/yadisk/admsev/war
-    download_sed_svc: /mnt/yadisk/admsev/sed
     WF_DIR: /opt/wildfly/standalone/deployments
-    delegate_IP: 192.168.0.147
+    delegate_IP: qa
 
   tasks:
 
@@ -64,7 +68,7 @@
       service: name=wildfly state=started
       when: ear_exists.rc != 1
 
-    - name: "wait for ABC to come up"
+    - name: "wait for cm5div6 to come up"
       uri:
         url: "http://192.168.0.147:8080/cm5div6"
         status_code: 200
@@ -72,27 +76,75 @@
       until: result.status == 200
       retries: 1500
       delay: 1
+      when: ear_exists.rc != 1
 
 
 
-- name: Update WF
-  hosts: wf
+- name: WFslave
+  hosts: WF
   user: root
+
+  vars:
+    ear_target: "{{ lookup('pipe', 'ls -1 /opt/update/*.ear') }}"
+    ear_dir_target: "{{ lookup('pipe', 'ls -1 /opt/wildfly/standalone/deployments/*.ear') }}"
+    download_ear_target: /mnt/yadisk/admsev/sev
+    WF_DIR_target: /opt/wildfly/standalone/deployments
+    delegate_IP_target: qa
 
   tasks:
 
     - name: Check if the ear.
-      command: /usr/bin/test -e {{download_ear}}/*
+      command: "/usr/bin/test -e {{ear_target}}"
       ignore_errors: True
-      register: ear_exists
+      register: ear_target_exists
 
     - name: Clean up.
-      file: state=absent path={{{WF_DIR}}/cm5div6*
-      when: ear_exists.rc != 1
+      file: state=absent path={{ear_dir_target}}
+      ignore_errors: True
+      when: ear_target_exists.rc != 1
 
     - name: Download ear.
       synchronize:
-      src: "{{download_ear}}/*"
-      dest: "{{WF_DIR}}/"
-      delegate_to: {{delegate_IP}}
-      when: ear_exists.rc != 1
+        src: "{{ear_target}}"
+        dest: "{{WF_DIR_target}}/"
+      delegate_to: "{{delegate_IP_target}}"
+      when: ear_target_exists.rc != 1
+
+    - name: wf start
+      service: name=wildfly state=started
+      when: ear_target_exists.rc != 1
+
+- name: Update WEB
+  hosts: WEB
+  user: root
+
+  vars:
+    war: "{{ lookup('pipe', 'ls -1 /opt/update/*.war') }}"
+    war_dir: "{{ lookup('pipe', 'ls -1 /opt/tomcat/cmjapps/wars/*.war') }}"
+    download_ear: /mnt/yadisk/admsev/sev
+    TM_DIR:  /opt/tomcat/cmjapps/wars
+    delegate_IP: qa
+
+  tasks:
+
+    - name: Check if the ear.
+      command: "/usr/bin/test -e {{war}}"
+      ignore_errors: True
+      register: web_tomcat_target_exists
+
+    - name: Clean up.
+      file: state=absent path={{war_dir}}
+      ignore_errors: True
+      when: web_tomcat_target_exists.rc != 1
+
+    - name: Download ear.
+      synchronize:
+        src: "{{war}}"
+        dest: "{{TM_DIR}}/cmj-web.war"
+      delegate_to: "{{delegate_IP}}"
+      when: web_tomcat_target_exists.rc != 1
+
+    - name: tomcat
+      service: name=tomcat state=started
+      when: web_tomcat_target_exists.rc != 1
+
