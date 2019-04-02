@@ -1,0 +1,5 @@
+- hosts: WF
+  user: root
+  tasks:
+    - name: wf stop
+      service: name=wildfly state=stopped
