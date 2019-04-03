@@ -1,7 +1,7 @@
 - hosts: all
   user: root
   vars:
-    IP_MASER: 192.168.177.151
+    IP_MASTER: 192.168.177.151
   tasks:
     - name: installing centos-release-gluster
       yum:
@@ -34,5 +34,5 @@
           with_items:
             - "{{folder_stats.results}}"
     - name: mount
-      command: "mount.glusterfs {{IP_MASER}}:/replicated /local/cm-data/attachments"
+      command: "mount.glusterfs {{IP_MASTER}}:/replicated /local/cm-data/attachments"
 
