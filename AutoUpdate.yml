@@ -262,7 +262,7 @@
     tasks:
 
     - name: Check if the war_sed_svc.
-      command: "/usr/bin/test -e {{war}}"
+      command: "/usr/bin/test -e {{war_sed}}"
       ignore_errors: True
       register: web_tomcat_target_exists
 
@@ -272,14 +272,14 @@
 
 
     - name: Clean up.
-      file: state=absent path={{war_dir}}
+      file: state=absent path={{war_dir_sed}}
       ignore_errors: True
       when: web_tomcat_target_exists.rc != 1
 
     - name: Download ear.
       synchronize:
-        src: "{{war}}"
-        dest: "{{TM_DIR}}/cmj-web.war"
+        src: "{{war_sed}}"
+        dest: "{{TM_DIR_sed}}/cmj-web.war"
       delegate_to: "{{delegate_IP}}"
       when: web_tomcat_target_exists.rc != 1
 
