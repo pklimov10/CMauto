@@ -222,11 +222,15 @@
     delegate_IP: nginx
 
   tasks:
-
-    - name: Check if the ear.
+    - name: Check if the war.
       command: "/usr/bin/test -e {{war}}"
       ignore_errors: True
       register: web_tomcat_target_exists
+
+    - name: tomcat stop
+      service: name=tomcat state=stopped
+      when: web_tomcat_target_exists.rc != 1
+
 
     - name: Clean up.
       file: state=absent path={{war_dir}}
@@ -240,7 +244,46 @@
       delegate_to: "{{delegate_IP}}"
       when: web_tomcat_target_exists.rc != 1
 
-    - name: tomcat
+    - name: tomcat start
+      service: name=tomcat state=started
+      when: web_tomcat_target_exists.rc != 1
+
+  - name: Update SED_SVC
+    hosts: WEB
+    user: root
+
+    vars:
+      war_sed: "{{ lookup('pipe', 'ls -1 /opt/update/*.war') }}"
+      war_dir_sed: "{{ lookup('pipe', 'ls -1 /opt/tomcat/cmjapps/wars/*.war') }}"
+      download_war_sed: /mnt/yadisk/admsev/web
+      TM_DIR_sed:  /opt/tomcat/cmjapps/wars
+      delegate_IP: nginx
+
+    tasks:
+
+    - name: Check if the war_sed_svc.
+      command: "/usr/bin/test -e {{war}}"
+      ignore_errors: True
+      register: web_tomcat_target_exists
+
+    - name: tomcat stop
+      service: name=tomcat state=stopped
+      when: web_tomcat_target_exists.rc != 1
+
+
+    - name: Clean up.
+      file: state=absent path={{war_dir}}
+      ignore_errors: True
+      when: web_tomcat_target_exists.rc != 1
+
+    - name: Download ear.
+      synchronize:
+        src: "{{war}}"
+        dest: "{{TM_DIR}}/cmj-web.war"
+      delegate_to: "{{delegate_IP}}"
+      when: web_tomcat_target_exists.rc != 1
+
+    - name: tomcat start
       service: name=tomcat state=started
       when: web_tomcat_target_exists.rc != 1
 
