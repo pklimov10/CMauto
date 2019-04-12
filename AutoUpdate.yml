@@ -48,7 +48,7 @@
 
 #ищем ear если он есть то обновляем его
 - name: Update WF_master
-  hosts: WF
+  hosts: WF_TARGET
   user: root
   vars:
     ear: "{{ lookup('pipe', 'ls -1 /mnt/yadisk/admsev/sev/*.ear') }}"
@@ -65,19 +65,19 @@
       register: ear_exists
 
     - name: Clean up.
-      file: state=absent path={{ear_dir}}
-      when: ear_exists.rc != 1
+      shell: /bin/rm -rf /opt/wildfly/standalone/deployments/*.ear
+      when: ear_exists.rc != 0
 
     - name: Download ear.
       synchronize:
         src: "{{ear}}"
         dest: "{{WF_DIR}}/"
       delegate_to: "{{delegate_IP}}"
-      when: ear_exists.rc != 1
+      when: ear_exists.rc != 0
 
     - name: wf start
       service: name=wildfly state=started
-      when: ear_exists.rc != 1
+      when: ear_exists.rc != 0
 
     - name: "wait for cm5div6 to come up"
       uri:
@@ -87,12 +87,12 @@
       until: result.status == 200
       retries: 1500
       delay: 1
-      when: ear_exists.rc != 1
+      when: ear_exists.rc != 0
 
 
 
 - name: WFslave
-  hosts: WF_TARGET
+  hosts: WF
   user: root
 
   vars:
@@ -110,19 +110,19 @@
       register: ear_target_exists
 
     - name: Clean up WF_TARGET.
-      file: state=absent path={{ear_dir_target}}
-      when: ear_target_exists.rc != 1
+      shell: /bin/rm -rf /opt/wildfly/standalone/deployments/*.ear
+      when: ear_target_exists.rc != 0
 
     - name: Download ear WF_TARGET.
       synchronize:
         src: "{{ear_target}}"
         dest: "{{WF_DIR_target}}/"
       delegate_to: "{{delegate_IP_target}}"
-      when: ear_target_exists.rc != 1
+      when: ear_target_exists.rc != 0
 
     - name: wf start WF_TARGET
       service: name=wildfly state=started
-      when: ear_target_exists.rc != 1
+      when: ear_target_exists.rc != 0
 
 - name: WFTARGETAPP5
   hosts: WF_TARGET_APP5
@@ -149,107 +149,71 @@
       register: ear_target_exists
 
     - name: Clean up WF_TARGET_APP5.
-      file: state=absent path={{ear_dir_target0}}
-      when: ear_target_exists.rc != 1
+      shell: /bin/rm -rf /opt/wildfly/standalone/deployments/*.ear
+      when: ear_target_exists.rc != 0
 
     - name: Clean up WF_TARGET_APP5_1.
-      file: state=absent path={{ear_dir_target1}}
-      when: ear_target_exists.rc != 1
+      shell: /bin/rm -rf /opt/wildfly1/standalone/deployments/*.ear
+      when: ear_target_exists.rc != 0
 
     - name: Clean up WF_TARGET_APP5_2.
-      file: state=absent path={{ear_dir_target2}}
-      when: ear_target_exists.rc != 1
+      shell: /bin/rm -rf /opt/wildfly2/standalone/deployments/*.ear
+      when: ear_target_exists.rc != 0
 
     - name: Clean up WF_TARGET_APP5_3.
-      file: state=absent path={{ear_dir_target3}}
-      when: ear_target_exists.rc != 1
+      shell: /bin/rm -rf /opt/wildfly3/standalone/deployments/*.ear
+      when: ear_target_exists.rc != 0
 
     - name: Download ear WF_TARGET_APP5.
       synchronize:
         src: "{{ear_target}}"
         dest: "{{WF_DIR_target0}}/"
       delegate_to: "{{delegate_IP_target}}"
-      when: ear_target_exists.rc != 1
+      when: ear_target_exists.rc != 0
 
     - name: Download ear WF_TARGET_APP5_1.
       synchronize:
         src: "{{ear_target}}"
         dest: "{{WF_DIR_target1}}/"
       delegate_to: "{{delegate_IP_target}}"
-      when: ear_target_exists.rc != 1
+      when: ear_target_exists.rc != 0
 
     - name: Download ear WF_TARGET_APP5_2.
       synchronize:
         src: "{{ear_target}}"
         dest: "{{WF_DIR_target2}}/"
       delegate_to: "{{delegate_IP_target}}"
-      when: ear_target_exists.rc != 1
+      when: ear_target_exists.rc != 0
 
     - name: Download ear WF_TARGET_APP5_3.
       synchronize:
         src: "{{ear_target}}"
         dest: "{{WF_DIR_target3}}/"
       delegate_to: "{{delegate_IP_target}}"
-      when: ear_target_exists.rc != 1
+      when: ear_target_exists.rc != 0
 
     - name: wf start WF_TARGET_APP5
       service: name=wildfly state=started
-      when: ear_target_exists.rc != 1
+      when: ear_target_exists.rc != 0
 
     - name: wf start WF_TARGET_APP5_1
       service: name=wildfly_1 state=started
-      when: ear_target_exists.rc != 1
+      when: ear_target_exists.rc != 0
 
     - name: wf start WF_TARGET_APP5_2
       service: name=wildfly_2 state=started
-      when: ear_target_exists.rc != 1
+      when: ear_target_exists.rc != 0
 
     - name: wf start WF_TARGET_APP5_3
       service: name=wildfly_3 state=started
-      when: ear_target_exists.rc != 1
+      when: ear_target_exists.rc != 0
 
 
 
-- name: Update WEB
-  hosts: WEB
-  user: root
 
-  vars:
-    war: "{{ lookup('pipe', 'ls -1 /opt/update/*.war') }}"
-    war_dir: "{{ lookup('pipe', 'ls -1 /opt/tomcat/cmjapps/wars/*.war') }}"
-    download_ear: /mnt/yadisk/admsev/web
-    TM_DIR:  /opt/tomcat/cmjapps/wars
-    delegate_IP: nginx
-
-  tasks:
-    - name: Check if the war.
-      command: "/usr/bin/test -e {{war}}"
-      ignore_errors: True
-      register: web_tomcat_target_exists
-
-    - name: tomcat stop
-      service: name=tomcat state=stopped
-      when: web_tomcat_target_exists.rc != 1
-
-
-    - name: Clean up.
-      file: state=absent path={{war_dir}}
-      ignore_errors: True
-      when: web_tomcat_target_exists.rc != 1
-
-    - name: Download ear.
-      synchronize:
-        src: "{{war}}"
-        dest: "{{TM_DIR}}/cmj-web.war"
-      delegate_to: "{{delegate_IP}}"
-      when: web_tomcat_target_exists.rc != 1
-
-    - name: tomcat start
-      service: name=tomcat state=started
-      when: web_tomcat_target_exists.rc != 1
 
   - name: Update SED_SVC
-    hosts: WEB
+    hosts: SVC
     user: root
 
     vars:
