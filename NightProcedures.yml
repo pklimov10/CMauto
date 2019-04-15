@@ -1,0 +1,82 @@
+- hosts: WF
+  user: root
+  tasks:
+    - name: wf stop
+      service: name=wildfly state=stopped
+
+- hosts: WF_TARGET
+  user: root
+  tasks:
+    - name: wf stop
+      service: name=wildfly state=stopped
+
+- hosts: WF_TARGET_APP5
+  user: root
+  tasks:
+    - name: wf stop
+      service: name=wildfly state=stopped
+    - name: wf1 stop
+      service: name=wildfly_1 state=stopped
+    - name: wf2 stop
+      service: name=wildfly_2 state=stopped
+    - name: wf3 stop
+      service: name=wildfly_3 state=stopped
+
+#переменые
+- hosts: PG_CM5
+  user: root
+  vars:
+    CM5_PG_DIR: /var/lib/libvirt/images/SED2/dumps
+
+  #делаем бекап баз
+  tasks:
+    - name: PG_DUMP_CM5
+      become: yes
+      become_user: postgres
+      command: "pg_dump --port 5432 --username 'postgres' --role 'postgres' --format directory --blobs --no-privileges --no-tablespaces --verbose --no-unlogged-table-data --jobs=70 --file '{{CM5_PG_DIR}}/CM5-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}' 'cm5'"
+
+- hosts: PG_CMJ
+  user: root
+  vars:
+    CMJ_PG_DIR: /var/lib/libvirt/images/SED2/dumps
+
+  tasks:
+    - name: PG_DUMP_CMJ
+      become: yes
+      become_user: postgres
+      command: "pg_dump --port 5432 --username 'postgres' --role 'postgres' --format directory --blobs --no-privileges --no-tablespaces --verbose --no-unlogged-table-data --jobs=70 --file '{{CMJ_PG_DIR}}/CMJ-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}' 'cmj'"
+
+- name: Update WF_master
+  hosts: WF_TARGET
+  user: root
+  tasks:
+   - name: wf start
+      service: name=wildfly state=started
+
+    - name: "wait for cm5div6 to come up"
+      uri:
+        url: "http://10.10.112.1:8080/cm5div6"
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 1500
+      delay: 1
+
+
+- name: WFslave
+  hosts: WF
+  user: root
+  - name: wf start WF_TARGET
+    service: name=wildfly state=started
+
+- hosts: WF_TARGET_APP5
+  user: root
+  tasks:
+    - name: wf stop
+      service: name=wildfly state=started
+    - name: wf1 stop
+      service: name=wildfly_1 state=started
+    - name: wf2 stop
+      service: name=wildfly_2 state=started
+    - name: wf3 stop
+      service: name=wildfly_3 state=started
