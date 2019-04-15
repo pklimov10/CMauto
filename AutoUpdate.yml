@@ -232,22 +232,22 @@
 
     - name: tomcat stop
       service: name=tomcat state=stopped
-      when: web_tomcat_target_exists.rc != 1
+      when: web_tomcat_target_exists.rc != 0
 
 
     - name: Clean up.
       file: state=absent path={{war_dir_sed}}
       ignore_errors: True
-      when: web_tomcat_target_exists.rc != 1
+      when: web_tomcat_target_exists.rc != 0
 
     - name: Download ear.
       synchronize:
         src: "{{war_sed}}"
         dest: "{{TM_DIR_sed}}/cmj-web.war"
       delegate_to: "{{delegate_IP}}"
-      when: web_tomcat_target_exists.rc != 1
+      when: web_tomcat_target_exists.rc != 0
 
     - name: tomcat start
       service: name=tomcat state=started
-      when: web_tomcat_target_exists.rc != 1
+      when: web_tomcat_target_exists.rc != 0
 
