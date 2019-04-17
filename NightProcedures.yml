@@ -50,33 +50,34 @@
   hosts: WF_TARGET
   user: root
   tasks:
-   - name: wf start
-      service: name=wildfly state=started
+  - name: wf start
+    service: name=wildfly state=started
 
-    - name: "wait for cm5div6 to come up"
-      uri:
-        url: "http://10.10.112.1:8080/cm5div6"
-        status_code: 200
-      register: result
-      until: result.status == 200
-      retries: 1500
-      delay: 1
+  - name: "wait for cm5div6 to come up"
+    uri:
+      url: "http://10.10.112.1:8080/cm5div6"
+      status_code: 200
+    register: result
+    until: result.status == 200
+    retries: 1500
+    delay: 1
 
 
 - name: WFslave
   hosts: WF
   user: root
+  task:
   - name: wf start WF_TARGET
     service: name=wildfly state=started
 
 - hosts: WF_TARGET_APP5
   user: root
   tasks:
-    - name: wf stop
-      service: name=wildfly state=started
-    - name: wf1 stop
-      service: name=wildfly_1 state=started
-    - name: wf2 stop
-      service: name=wildfly_2 state=started
-    - name: wf3 stop
-      service: name=wildfly_3 state=started
+  - name: wf stop
+    service: name=wildfly state=started
+  - name: wf1 stop
+    service: name=wildfly_1 state=started
+  - name: wf2 stop
+    service: name=wildfly_2 state=started
+  - name: wf3 stop
+    service: name=wildfly_3 state=started
