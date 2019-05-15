@@ -1,4 +1,4 @@
-- hosts: postgres
+- hosts: all
   user: root
   tasks:
     - name:  updating postgres repo

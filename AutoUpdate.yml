@@ -39,7 +39,7 @@
   hosts: WF
   user: root
   vars:
-    ear: "{{ lookup('pipe', 'ls -1 /opt/update/*.ear') }}"
+    ear: "{{ lookup('pipe', 'ls -1 {{download_ear}}/*.ear') }}"
     ear_dir: "{{ lookup('pipe', 'ls -1 /opt/wildfly/standalone/deployments/*.ear') }}"
     download_ear: /mnt/yadisk/admsev/sev
     WF_DIR: /opt/wildfly/standalone/deployments
