@@ -1,5 +1,5 @@
 ---
-- hosts: LO
+- hosts: all
   remote_user: root
   vars:
     download_folder: /opt
@@ -7,7 +7,7 @@
     lo_archive: "{{download_folder}}/LibreOffice_4.4.7.2_Linux_x86-64_rpm"
     TOMCAT_HOME: /usr/share/tomcat
     TOMCAT_CONF: /tmconf
-    delegate_IP: 192.168.177.162
+    delegate_IP: localhost
 
   tasks:
     - name: Download LO
