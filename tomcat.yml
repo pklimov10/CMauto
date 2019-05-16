@@ -14,7 +14,7 @@
       synchronize:
         src: /root/LibreOffice_4.4.7.2_Linux_x86-64_rpm
         dest: /opt/ creates={{lo_archive}}
-      delegate_to: {{delegate_IP}}
+      delegate_to: "{{delegate_IP}}"
 
     - name: LO install
       yum: name={{item}} state=latest
@@ -55,43 +55,43 @@
       synchronize:
         src: /tmconf/sedsvc-war.xml
         dest: "{{TOMCAT_HOME}}/conf/Catalina/localhost/"
-      delegate_to: {{delegate_IP}}
+      delegate_to: "{{delegate_IP}}"
 
     - name: Download war
       synchronize:
         src: /tmconf/sedsvc-war-2.1.49.war
         dest: "{{TOMCAT_HOME}}/cmjapps/wars/"
-      delegate_to: {{delegate_IP}}
+      delegate_to: "{{delegate_IP}}"
 
     - name: Download catalina
       synchronize:
         src: /tmconf/catalina.policy
         dest: "{{TOMCAT_HOME}}/conf/"
-      delegate_to: {{delegate_IP}}
+      delegate_to: "{{delegate_IP}}"
 
     - name: Download sedsvc-default
       synchronize:
         src: /tmconf/sedsvc-defaults.properties
         dest: "{{TOMCAT_HOME}}/cmjapps/conf/medo/"
-      delegate_to: {{delegate_IP}}
+      delegate_to: "{{delegate_IP}}"
 
     - name: Download server
       synchronize:
         src: /tmconf/server.xml
         dest: "{{TOMCAT_HOME}}/conf/"
-      delegate_to: {{delegate_IP}}
+      delegate_to: "{{delegate_IP}}"
 
     - name: Download Converter
       synchronize:
         src: /tmconf/server.xml
         dest: "{{TOMCAT_HOME}}/Converter/conf/"
-      delegate_to: {{delegate_IP}}
+      delegate_to: "{{delegate_IP}}"
 
     - name: Download Converter
       synchronize:
         src: /tmconf/catalina.policy
         dest: "{{TOMCAT_HOME}}/Converter/conf/"
-      delegate_to: {{delegate_IP}}
+      delegate_to: "{{delegate_IP}}"
 
     - name: chown
       command: "chown -fR tomcat:tomcat {{TOMCAT_HOME}}/ "
