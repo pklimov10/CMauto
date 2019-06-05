@@ -29,9 +29,6 @@
       with_items:
         - tomcat
         - tomcat-webapps
-        - tomcat-admin-webapps
-        - tomcat-docs-webapp
-        - tomcat-javadoc
 
     - block:
         - name: "Checking folders"
@@ -99,5 +96,3 @@
     - name: chown_test
       command: "chown -fR tomcat:tomcat {{TOMCAT_HOME}}/ "
 
-    - name: tomcat restart
-      service: name=tomcat state=restarted
