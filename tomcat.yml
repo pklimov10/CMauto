@@ -96,3 +96,5 @@
     - name: chown_test
       command: "chown -fR tomcat:tomcat {{TOMCAT_HOME}}/ "
 
+    - name: tomcat restart
+      service: name=tomcat state=restarted

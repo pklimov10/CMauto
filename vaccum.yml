@@ -1,0 +1,83 @@
+- hosts: WF
+  user: root
+  tasks:
+    - name: wf stop
+      service: name=wildfly state=stopped
+
+- hosts: WF_TARGET
+  user: root
+  tasks:
+    - name: wf stop
+      service: name=wildfly state=stopped
+
+#делаем бекап баз
+- hosts: PG_CM5
+  user: root
+  vars:
+    CM5_PG_DIR: /opt/cm-sochi/backup
+
+  tasks:
+    - name: PG_DUMP_CM5
+      become: yes
+      become_user: postgres
+      command: "pg_dump --port 5432 --username 'postgres' --role 'postgres' --format directory --blobs --no-privileges --no-tablespaces --verbose --no-unlogged-table-data --jobs=48 --file '{{CM5_PG_DIR}}/CM5-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}' 'cm5'"
+
+- hosts: PG_CMJ
+  user: root
+  vars:
+    CMJ_PG_DIR: /opt/cm-sochi/backup
+
+  tasks:
+    - name: PG_DUMP_CMJ
+      become: yes
+      become_user: postgres
+      command: "pg_dump --port 5432 --username 'postgres' --role 'postgres' --format directory --blobs --no-privileges --no-tablespaces --verbose --no-unlogged-table-data --jobs=48 --file '{{CMJ_PG_DIR}}/CMJ-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}' 'cmj'"
+
+
+#делаем ваку
+- hosts: PG_CM5
+  user: root
+
+  tasks:
+    - name: PG_vaccum_CM5
+      become: yes
+      become_user: postgres
+      command: "psql -U postgres -d cm5 -c 'VACUUM FULL ANALYZE'"
+
+- hosts: PG_CMJ
+  user: root
+
+  tasks:
+    - name: PG_vaccum_CMJ
+      become: yes
+      become_user: postgres
+      command: "psql -U postgres -d cmj -c 'VACUUM FULL ANALYZE'"
+
+#ищем ear если он есть то обновляем его
+- name: Update WF_master
+  hosts: WF
+  user: root
+
+  tasks:
+
+    - name: "wait for cm5div6 to come up"
+      uri:
+        url: "http://192.168.0.147:8080/cm5div6"
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 1500
+      delay: 1
+
+
+
+
+- name: WFslave
+  hosts: WF_TARGET
+  user: root
+
+  tasks:
+
+    - name: wf start
+      service: name=wildfly state=started
+
