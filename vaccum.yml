@@ -59,6 +59,9 @@
   user: root
 
   tasks:
+    - name: wf start
+      service: name=wildfly state=started
+
 
     - name: "wait for cm5div6 to come up"
       uri:
