@@ -11,4 +11,12 @@
       with_items:
         - postgresql10
         - postgresql10-server
+<<<<<<< Updated upstream
         - postgresql10-contrib
+=======
+        - postgresql10-contrib
+        - python-psycopg2
+        - repmgr10
+
+
+>>>>>>> Stashed changes
