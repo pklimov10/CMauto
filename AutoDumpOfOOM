@@ -1,7 +1,9 @@
 #!/bin/bash
-
+#уть где будут лежать статусы службы и ОЗУ
 scrps_path=/root/scrps
+#путь до тред дампов
 DIRPATH=/opt/treddumps
+#путь до jvm
 javadir=/usr/java/jdk1.8.0_201-amd64
 #куда сохраняем лог
 wf_log=/opt
@@ -33,7 +35,7 @@ then
 PID=$(jps -v |grep "\-Dlogging.configuration=file:/opt/wildfly/standalone" |grep Xmx |awk '{print $1}')
 echo $PID
 $javadir/bin/jstack -F $PID >> $DIRPATH/$(date -d "today" +"%Y-%m-%d-%H-%M").txt
-ssh $ip_subd 192.168.0.147 'sudo -u postgres psql -U postgres -c "select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity" | ssh root@192.168.0.148 "cat >> /opt/treddumps/$(date -d 'today' +'Zapros-%Y-%m-%d-%H-%M').csv"'
+ssh $ip_subd  'sudo -u postgres psql -U postgres -c "select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity" | ssh root@192.168.0.148 "cat >> /opt/treddumps/$(date -d 'today' +'Zapros-%Y-%m-%d-%H-%M').csv"'
 tar -czf &wf_log/$(date -d "today" +"%Y-%m-%d-%H-%M").tar.gz $wf_dir/standalone/log/*
 else
 echo 'идем дальше'
