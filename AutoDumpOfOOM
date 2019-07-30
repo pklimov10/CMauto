@@ -1,0 +1,41 @@
+#!/bin/bash
+
+scrps_path=/root/scrps
+DIRPATH=/opt/treddumps
+javadir=/usr/java/jdk1.8.0_201-amd64
+#куда сохраняем лог
+wf_log=/opt
+#путь до WH_home
+wf_dir=/opt/wildfly
+#b указываем количество свободного озу при котором снимать дамп
+b=1023
+#ip РСУБД
+ip_subd=192.168.0.147
+
+info_web="*Web-servers*
+----------------------
+$(service wildfly status | sed -r "s/[*]+/-/g")
+
+
+"
+
+info_ram="*RAM*
+----------------------
+free: $(free -m | grep Mem | awk '{print $4}') MB of $(free -m | grep Mem | awk '{print $2}') MB total
+
+"
+ssh $ip_subd 192.168.0.147 'sudo -u postgres psql -U postgres -c "select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity" | ssh root@192.168.0.148 "cat >> /opt/treddumps/$(date -d 'today' +'Zapros-%Y-%m-%d-%H-%M').csv"'
+
+text=$(printf "$info_web$info_mysql$info_cpu$info_ram$info_space")
+printf '%s\n' "$text" > ${scrps_path}/$(date -d "today" +"%Y-%m-%d-%H-%M").txt
+echo $text
+a=$(free -m | grep Mem | awk '{print $4}')
+if [ "$a" -le "$b" ]
+then
+PID=$(jps -v |grep "\-Dlogging.configuration=file:/opt/wildfly/standalone" |grep Xmx |awk '{print $1}')
+echo $PID
+$javadir/bin/jstack -F $PID >> $DIRPATH/$(date -d "today" +"%Y-%m-%d-%H-%M").txt
+tar -czf &wf_log/$(date -d "today" +"%Y-%m-%d-%H-%M").tar.gz $wf_dir/standalone/log/*
+else
+echo 'идем дальше'
+fi
