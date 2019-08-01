@@ -31,7 +31,7 @@ LOGIN=login:pass
 #Измеряем вес до вакума CM5
 info_db_old_cm5=$`sudo -u postgres psql -U postgres  -c "SELECT pg_size_pretty( pg_database_size( 'cm5' ) );"`
 #Измеряем вес до вакума CM5
-info_db_old_cmj=$`sudo -u postgres psql -U postgres  -c "SELECT pg_size_pretty( pg_database_size( 'cm5' ) );"`
+info_db_old_cmj=$`sudo -u postgres psql -U postgres  -c "SELECT pg_size_pretty( pg_database_size( 'cmj' ) );"`
 #Отключение APP
 for ADDR in ${APP[*]}
         do
@@ -46,7 +46,8 @@ psql -U postgres -d $db_nameCMJ -c 'VACUUM FULL ANALYZE;'
 #Измеряем вес после вакума CM5
 info_db_new_cm5=$`sudo -u postgres psql -U postgres  -c "SELECT pg_size_pretty( pg_database_size( 'cm5' ) );"`
 #Измеряем вес после вакума CM5
-info_db_new_cmj=$`sudo -u postgres psql -U postgres  -c "SELECT pg_size_pretty( pg_database_size( 'cm5' ) );"`
+info_db_new_cmj=$`sudo -u postgres psql -U postgres  -c "SELECT pg_size_pretty( pg_database_size( 'cmj' ) );"`
+#Формирования отчета
 info_subd_cm5_old="Вес базы cm5 до вакума $info_db_old_cm5"
 info_subd_cmj_old="Вес базы cmj до вакума $info_db_old_cmj"
 info_subd_cm5_new="Вес базы cm5 после вакума $info_db_new_cm5"
