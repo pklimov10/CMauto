@@ -71,5 +71,3 @@ exit
 fi
 #Проверка кластера
 sudo -u postgres createdb $(date -d "today" +"%Y-%m-%d-%H")
-
-SELECT pg_size_pretty( pg_database_size( 'sample_db' ) );
