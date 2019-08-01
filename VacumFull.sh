@@ -53,6 +53,8 @@ info_subd_cm5_new="Вес базы cm5 после вакума $info_db_new_cm5"
 info_subd_cmj_new="Вес базы cmj после вакума $info_db_new_cmj"
 text=$(printf "$info_subd_cm5_old \n $info_subd_cmj_old \n $info_subd_cm5_new \n $info_subd_cmj_new")
 printf '%s\n' "$text" > ${scrps_path}/$(date -d "today" +"%Y-%m-%d-%H-%M").txt
+curl -F chat_id=$CHAT_ID -F document=@"${scrps_path}/$(date -d "today" +"%Y-%m-%d-%H-%M").txt" -F caption="Отчет о вакум фулл" http://185.112.82.9:85/bot$TOKEN/sendDocument
+
 echo $text
 #ЗАпуск Апп серверов
 ssh $APP1 'systemctl start wildfly'
