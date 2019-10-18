@@ -10,18 +10,19 @@ CHAT_ID=
 URL="http://185.112.82.9:85/bot$TOKEN/sendMessage"
 
 today=$(date +'%Y-%m-%d')
+lastday=$(date -d '1 day ago' +'%Y-%m-%d')
 
-a=`psql -U postgres -t -d cm5 -c \ "select count(*) from ag_data_message where ag_data_message.agent=25 and (created_date>'$today' and created_date<'$today')";`
+a=`psql -U postgres -t -d cm5 -c \ "select count(*) from ag_data_message where ag_data_message.agent=25 and (created_date>'$today' and created_date<'$lastday')";`
 if [ "$a" -gt "0" ]
 then
   curl -s -X POST $URL -d chat_id=$CHAT_ID -d text="Обнаружены зависшие задачи выполняем update"
-  psql -U postgres -t -d cm5 -c \ "update ag_data_message set processing=0 where ag_data_message.agent=25 and (created_date>'$today' and created_date<'$today' and excluded=0 )";
-  b=`psql -U postgres -t -d cm5 -c \ "select count(*) from ag_data_message where ag_data_message.agent=25 and (created_date>'$today' and created_date<'$today')";`
+  psql -U postgres -t -d cm5 -c \ "update ag_data_message set processing=0 where ag_data_message.agent=25 and (created_date>'$today' and created_date<'$lastday' and excluded=0 )";
+  b=`psql -U postgres -t -d cm5 -c \ "select count(*) from ag_data_message where ag_data_message.agent=25 and (created_date>'$today' and created_date<'$lastday')";`
     if [ "$b" -gt "0" ]
     then
       curl -s -X POST $URL -d chat_id=$CHAT_ID -d text="Задачи не удалилсь"
       curl -s -X POST $URL -d chat_id=$CHAT_ID -d text="Собираю данные"
-      infoCSV=`psql -U postgres -x -d cm5 -c \ "select * from ag_data_message where ag_data_message.agent=25 and (created_date>'$today' and created_date<'$today')";`
+      infoCSV=`psql -U postgres -x -d cm5 -c \ "select * from ag_data_message where ag_data_message.agent=25 and (created_date>'$today' and created_date<'$lastday')";`
       echo $infoCSV > /opt/$(date +'%Y-%m-%d').csv
       curl -F chat_id=$CHAT_ID -F document=@"/opt/$(date +'%Y-%m-%d').csv" -F caption="CSV" http://185.112.82.9:85/bot$TOKEN/sendDocument
         else
