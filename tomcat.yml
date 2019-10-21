@@ -54,7 +54,7 @@
     - name: Download Conf sedsvc-war
       synchronize:
         src: /tmconf/sedsvc-war.xml
-        dest: "{{TOMCAT_HOME}}/conf/Catalina/localhost/"
+        dest: "{{TOMCAT_HOME}}c"
       delegate_to: "{{delegate_IP}}"
 
     - name: Download war

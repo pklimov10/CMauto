@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: new
   user: root
   tasks:
     - name: Add RPMForge repo
