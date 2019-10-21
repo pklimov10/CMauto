@@ -38,9 +38,24 @@ cmjpool=`cat $STANDALONEXML |grep -A 30  'pool-name="CMJ"' |grep "<max-pool-size
 #Получение данных о конектах
 cm5a=`$WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CM5/statistics=pool:read-resource(include-runtime=true)" |grep ActiveCount |sed 's/,/ /g; s/>/ /g' |awk '{print $3}'`
 cmja=`$WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CMJ/statistics=pool:read-resource(include-runtime=true)" |grep ActiveCount |sed 's/,/ /g; s/>/ /g' |awk '{print $3}'`
+#считаем % для cm5
 resultcm5=$(echo "$cm5a/$cm5pool" | bc -l)
+#считаем % для cm5
 resultcm5pool=$(echo "$resultcm5*100" |bc -l )
+#расичтывем условия для cm5
 if (( $(echo "$resultcm5pool > $dcm5" |bc -l) ));
+then
+    echo "yes"
+else
+    echo "no"
+fi
+
+#считаем % для cml
+resultcmj=$(echo "$cmja/$cmjpool" | bc -l)
+#считаем % для cml
+resultcmjpool=$(echo "$resultcmj*100" |bc -l )
+#расичтывем условия для cml
+if (( $(echo "$resultcmjpool > $dcm5" |bc -l) ));
 then
     echo "yes"
 else
