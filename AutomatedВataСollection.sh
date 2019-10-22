@@ -47,9 +47,9 @@ if (( $(echo "$resultcm5pool > $dcm5" |bc -l) ));
 then
     echo "yes"
 else
-    echo "no"
+    echo "no" #пулы меньше нужного значения не чего не делаем
 fi
-
+echo $resultcm5pool
 #считаем % для cml
 resultcmj=$(echo "$cmja/$cmjpool" | bc -l)
 #считаем % для cml
@@ -59,5 +59,6 @@ if (( $(echo "$resultcmjpool > $dcm5" |bc -l) ));
 then
     echo "yes"
 else
-    echo "no"
+    echo "no" #пулы меньше нужного значения не чего не делаем
 fi
+echo $resultcmjpool
