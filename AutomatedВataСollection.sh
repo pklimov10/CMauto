@@ -38,6 +38,12 @@ cmjpool=`cat $STANDALONEXML |grep -A 30  'pool-name="CMJ"' |grep "<max-pool-size
 #Получение данных о конектах
 cm5a=`$WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CM5/statistics=pool:read-resource(include-runtime=true)" |grep ActiveCount |sed 's/,/ /g; s/>/ /g' |awk '{print $3}'`
 cmja=`$WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CMJ/statistics=pool:read-resource(include-runtime=true)" |grep ActiveCount |sed 's/,/ /g; s/>/ /g' |awk '{print $3}'`
+#провряем путь до javahome systemctl status wildfly | grep Standalone  |awk '{print $2}'
+my_java_home=`systemctl status wildfly | grep Standalone  |awk '{print $2}'`
+#Опредялем дравйер для РСУБД
+JDBCDRIVERNAME=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"'  |grep driver | sed 's/</ /g; s/>/ /g' |awk '{print $2}'`
+#Формируем путь до дравйера для РСУБД
+JDBCFILELOCATION=$WFDIR/standalone/deployments/$JDBCDRIVERNAME
 #считаем % для cm5
 resultcm5=$(echo "$cm5a/$cm5pool" | bc -l)
 #считаем % для cm5
@@ -45,7 +51,8 @@ resultcm5pool=$(echo "$resultcm5*100" |bc -l )
 #расичтывем условия для cm5
 if (( $(echo "$resultcm5pool > $dcm5" |bc -l) ));
 then
-    echo "yes"
+    echo "yes" #если да то присуждаем бал к недоступонсти системы
+    errorcm5=1
 else
     echo "no" #пулы меньше нужного значения не чего не делаем
 fi
@@ -57,8 +64,13 @@ resultcmjpool=$(echo "$resultcmj*100" |bc -l )
 #расичтывем условия для cml
 if (( $(echo "$resultcmjpool > $dcm5" |bc -l) ));
 then
-    echo "yes"
+    echo "yes" #если да то присуждаем бал к недоступонсти системы
+    errorcmj=1
 else
     echo "no" #пулы меньше нужного значения не чего не делаем
 fi
 echo $resultcmjpool
+
+#Модуль проверки конекшнов в базе
+
+
