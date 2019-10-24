@@ -32,9 +32,6 @@ CHECKURL="http://"$ip":"$hhtpport"/"$MyAppUri
 cm5pool=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"' |grep "<max-pool-size>" |sed 's/</ /g; s/>/ /g' |awk '{print $2}'`
 #Опрелялем пул соденией cmj
 cmjpool=`cat $STANDALONEXML |grep -A 30  'pool-name="CMJ"' |grep "<max-pool-size>" |sed 's/</ /g; s/>/ /g' |awk '{print $2}'`
-#опредляем подклюсение к рсубд
-
-#Механизм обнаружение аварийного/сбойного состояния серверов
 #Получение данных о конектах
 cm5a=`$WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CM5/statistics=pool:read-resource(include-runtime=true)" |grep ActiveCount |sed 's/,/ /g; s/>/ /g' |awk '{print $3}'`
 cmja=`$WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CMJ/statistics=pool:read-resource(include-runtime=true)" |grep ActiveCount |sed 's/,/ /g; s/>/ /g' |awk '{print $3}'`
@@ -43,7 +40,39 @@ my_java_home=`systemctl status wildfly | grep Standalone  |awk '{print $2}'`
 #Опредялем дравйер для РСУБД
 JDBCDRIVERNAME=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"'  |grep driver | sed 's/</ /g; s/>/ /g' |awk '{print $2}'`
 #Формируем путь до дравйера для РСУБД
-JDBCFILELOCATION=$WFDIR/standalone/deployments/$JDBCDRIVERNAME
+JDBCFILELOCATION=$WFHOME/standalone/deployments/$JDBCDRIVERNAME
+#получаем ip адрес cm5
+IP_CM5=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"' |grep jdbc:postgresql | sed 's/ //g'   |sed 's/\/\// /' |awk '{print $2}'  | sed 's/:/ /;s/\// /g' |awk '{print $1}'`
+#Получаем IP адерс cmj
+IP_CMJ=`cat $STANDALONEXML |grep -A 30 'pool-name="CMJ"' |grep jdbc:postgresql | sed 's/ //g'   |sed 's/\/\// /' |awk '{print $2}'  | sed 's/:/ /;s/\// /g' |awk '{print $1}'`
+#Получаем порт cm5
+PORT_CM5=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"' |grep jdbc:postgresql | sed 's/ //g'   |sed 's/\/\// /' |awk '{print $2}'  | sed 's/:/ /;s/\// /g' |awk '{print $2}'`
+#Получаем порт cmj
+PORT_CMJ=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"' |grep jdbc:postgresql | sed 's/ //g'   |sed 's/\/\// /' |awk '{print $2}'  | sed 's/:/ /;s/\// /g' |awk '{print $2}'`
+#Получаем название базы cm5
+DB_CN5_NAME=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"' |grep jdbc:postgresql | sed 's/ //g'   |sed 's/\/\// /' |awk '{print $2}'  | sed 's/:/ /;s/\// /g' | sed 's/?/ /g' |awk '{print $3}'`
+#Получаем название базы cmj
+DB_CNJ_NAME=`cat $STANDALONEXML |grep -A 30 'pool-name="CMJ"' |grep jdbc:postgresql | sed 's/ //g'   |sed 's/\/\// /' |awk '{print $2}'  | sed 's/:/ /;s/\// /g' | sed 's/?/ /g' |awk '{print $3}'`
+#полчаем юзера для РСУБД CM5
+DB_CM5_USER=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"' |grep user-name  | sed 's/ //g' |sed  's/</ /g; s/>/ /g' |awk '{print $2}'`
+#полчаем юзера для РСУБД CMJ
+DB_CMJ_USER=`cat $STANDALONEXML |grep -A 30 'pool-name="CMJ"' |grep user-name  | sed 's/ //g' |sed  's/</ /g; s/>/ /g' |awk '{print $2}'`
+#Получаем пароль для РСУБД cm5
+DB_CM5_PASS=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"' |grep password  | sed 's/ //g' |sed  's/</ /g; s/>/ /g' |awk '{print $2}'`
+#Получаем пароль для РСУБД cmj
+DB_CMJ_PASS=`cat $STANDALONEXML |grep -A 30 'pool-name="CMJ"' |grep password | sed 's/ //g' |sed  's/</ /g; s/>/ /g' |awk '{print $2}'`
+echo $JDBCFILELOCATION "Драйдевер для рсубд"
+echo $IP_CM5 "ip cm5"
+echo $IP_CMJ "ip cmj"
+echo $PORT_CM5 "Получаем порт cm5"
+echo $PORT_CMJ "Получаем порт cmj"
+echo $DB_CN5_NAME "Получаем название базы cm5"
+echo $DB_CNJ_NAME "Получаем название базы cmj"
+echo $DB_CM5_USER "полчаем юзера для РСУБД CM5"
+echo $DB_CMJ_USER "полчаем юзера для РСУБД CMJ"
+echo $DB_CM5_PASS "Получаем пароль для РСУБД cm5"
+echo $DB_CMJ_PASS "Получаем пароль для РСУБД cmj"
+#Механизм обнаружение аварийного/сбойного состояния серверов
 #считаем % для cm5
 resultcm5=$(echo "$cm5a/$cm5pool" | bc -l)
 #считаем % для cm5
@@ -56,7 +85,7 @@ then
 else
     echo "no" #пулы меньше нужного значения не чего не делаем
 fi
-echo $resultcm5pool
+echo $resultcm5pool "Результат расчета"
 #считаем % для cml
 resultcmj=$(echo "$cmja/$cmjpool" | bc -l)
 #считаем % для cml
@@ -69,8 +98,10 @@ then
 else
     echo "no" #пулы меньше нужного значения не чего не делаем
 fi
-echo $resultcmjpool
+echo $resultcmjpool "Результат расчета"
 
 #Модуль проверки конекшнов в базе
+
+$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show all'
 
 
