@@ -101,7 +101,39 @@ fi
 echo $resultcmjpool "Результат расчета"
 
 #Модуль проверки конекшнов в базе
+#Получам сколько всего конектов может использоваться в cm5
+RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show max_connections' |grep -v max_connections`
+#Получаем использованыые пулы
+USED_RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show max_connections' |grep -v max_connections`
+#считаем % для cm5
+result_pool_cm5=$(echo "$USED_RSUBD_CM5/$RSUBD_CM5" | bc -l)
+#считаем % для cm5
+result_pool_cm5_1=$(echo "$result_pool_cm5*100" |bc -l )
 
-$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show all'
+#расичтывем условия для cm5
+if (( $(echo "$result_pool_cm5_1 > $dcm5" |bc -l) ));
+then
+    echo "yes" #если да то присуждаем бал к недоступонсти системы
+    errorpoolcm5=1
+else
+    echo "no" #пулы меньше нужного значения не чего не делаем
+fi
+
+RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show max_connections' |grep -v max_connections`
+#Получаем использованыые пулы
+USED_RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show max_connections' |grep -v max_connections`
+#считаем % для cm5
+result_pool_cm5=$(echo "$USED_RSUBD_CM5/$RSUBD_CM5" | bc -l)
+#считаем % для cm5
+result_pool_cm5_1=$(echo "$result_pool_cm5*100" |bc -l )
+
+#расичтывем условия для cm5
+if (( $(echo "$result_pool_cm5_1 > $dcm5" |bc -l) ));
+then
+    echo "yes" #если да то присуждаем бал к недоступонсти системы
+    errorpoolcm5=1
+else
+    echo "no" #пулы меньше нужного значения не чего не делаем
+fi
 
 
