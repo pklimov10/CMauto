@@ -104,12 +104,13 @@ echo $resultcmjpool "Результат расчета"
 #Получам сколько всего конектов может использоваться в cm5
 RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show max_connections' |grep -v max_connections`
 #Получаем использованыые пулы
-USED_RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show max_connections' |grep -v max_connections`
+USED_RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'SELECT COUNT(*) FROM pg_stat_activity' |grep -v count`
 #считаем % для cm5
 result_pool_cm5=$(echo "$USED_RSUBD_CM5/$RSUBD_CM5" | bc -l)
 #считаем % для cm5
 result_pool_cm5_1=$(echo "$result_pool_cm5*100" |bc -l )
-
+echo $result_pool_cm5
+echo $result_pool_cm5_1
 #расичтывем условия для cm5
 if (( $(echo "$result_pool_cm5_1 > $dcm5" |bc -l) ));
 then
@@ -119,19 +120,19 @@ else
     echo "no" #пулы меньше нужного значения не чего не делаем
 fi
 
-RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show max_connections' |grep -v max_connections`
+RSUBD_CMJ=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c 'show max_connections' |grep -v max_connections`
 #Получаем использованыые пулы
-USED_RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show max_connections' |grep -v max_connections`
+USED_RSUBD_CMJ=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c 'SELECT COUNT(*) FROM pg_stat_activity' |grep -v count`
 #считаем % для cm5
-result_pool_cm5=$(echo "$USED_RSUBD_CM5/$RSUBD_CM5" | bc -l)
+result_pool_cmj=$(echo "$USED_RSUBD_CMJ/$RSUBD_CMJ" | bc -l)
 #считаем % для cm5
-result_pool_cm5_1=$(echo "$result_pool_cm5*100" |bc -l )
+result_pool_cmj_1=$(echo "$result_pool_cmj*100" |bc -l )
 
 #расичтывем условия для cm5
-if (( $(echo "$result_pool_cm5_1 > $dcm5" |bc -l) ));
+if (( $(echo "$result_pool_cmj_1 > $dcm5" |bc -l) ));
 then
     echo "yes" #если да то присуждаем бал к недоступонсти системы
-    errorpoolcm5=1
+    errorpoolcmJ=1
 else
     echo "no" #пулы меньше нужного значения не чего не делаем
 fi
