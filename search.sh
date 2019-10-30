@@ -22,12 +22,14 @@ operation=all
 dateFrom=$(date -d "1 day ago" +"%Y-%m-%d%%2003:00:00")
 #Формируем дату сегодня -3 часа
 dateTo=$(date -d "3 hour ago" +"%Y-%m-%d%%20%H:%M:%S")
+nameCSV=$(date +"%Y-%m-%d-%H-%M").csv
 #опередляем джаву
 #провряем путь до javahome systemctl status wildfly | grep Standalone  |awk '{print $2}'
 my_java_home=`systemctl status wildfly | grep Standalone  |awk '{print $2}'`
 #вормируем CSV
 cd $properties
-$my_java_home -jar $searcher --server.port=$port & sleep 40  && wget -P $my_dir_csv/ http://127.0.0.1:6969/search/absent/$objectType/$operation/$dateFrom/$dateTo -T 0
+$my_java_home -jar $searcher --server.port=$port & sleep 40  && wget -P $my_dir_csv/$nameCSV http://127.0.0.1:6969/search/absent/$objectType/$operation/$dateFrom/$dateTo -T 0
 #убиваем java процес серчера
 my_kill=$(ps -ef | grep java |grep $searcher |awk '{print $2}')
 echo $my_kill
+kill -9 $my_kill
