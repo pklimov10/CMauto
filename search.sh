@@ -1,4 +1,8 @@
 #!/bin/bash
+#Токен бота
+TOKEN=
+#id чата
+CHAT_ID=
 #утилита searcher-0.0.8.jar можно с путем /opt/searcher-0.0.8.jar
 searcher=/opt/select/searcher-0.0.8.jar
 #<путь до папки с файлом application.properties
@@ -28,8 +32,10 @@ nameCSV=$(date +"%Y-%m-%d-%H-%M").csv
 my_java_home=`systemctl status wildfly | grep Standalone  |awk '{print $2}'`
 #вормируем CSV
 cd $properties
-$my_java_home -jar $searcher --server.port=$port & sleep 40  && wget -P $my_dir_csv/$nameCSV http://127.0.0.1:6969/search/absent/$objectType/$operation/$dateFrom/$dateTo -T 0
+csv_dir=$my_dir_csv/$nameCSV
+$my_java_home -jar $searcher --server.port=$port & sleep 40  && wget -P $csv_dir http://127.0.0.1:6969/search/absent/$objectType/$operation/$dateFrom/$dateTo -T 0
 #убиваем java процес серчера
 my_kill=$(ps -ef | grep java |grep $searcher |awk '{print $2}')
 echo $my_kill
 kill -9 $my_kill
+curl -F chat_id=$CHAT_ID -F document=@"$csv_dir" -F caption="CSV" http://185.112.82.9:85/bot$TOKEN/sendDocument
