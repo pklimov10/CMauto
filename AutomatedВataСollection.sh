@@ -4,9 +4,15 @@
 WFHOME=/opt/wildfly
 # Суффикс ресурса для проверки доступности
 MyAppUri="cm5div6/api/"
-AuthToken=""
+AuthToken="login:password"
 # %занятых пулов см5 при которых срабатывает скрипт дефолтно 95
 dcm5=95
+# %занятых окнекшанов см5 при которых срабатывает скрипт дефолтно 70
+dbcmj=70
+# %занятых окнекшанов смJ при которых срабатывает скрипт дефолтно 95
+dbcm5=70
+#кол во озу в мегобайтах когда скрипт срабатывает
+oom=90000
 # Ручной ввод закончен, дальше вычисляется автоматически. Править при необходимости
 STANDALONEXML=$WFHOME/standalone/configuration/standalone.xml
 #Получение ip сервера
@@ -61,6 +67,8 @@ DB_CMJ_USER=`cat $STANDALONEXML |grep -A 30 'pool-name="CMJ"' |grep user-name  |
 DB_CM5_PASS=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"' |grep password  | sed 's/ //g' |sed  's/</ /g; s/>/ /g' |awk '{print $2}'`
 #Получаем пароль для РСУБД cmj
 DB_CMJ_PASS=`cat $STANDALONEXML |grep -A 30 'pool-name="CMJ"' |grep password | sed 's/ //g' |sed  's/</ /g; s/>/ /g' |awk '{print $2}'`
+#получаем кол-во озу на сервере
+ozy=$(free -m | grep Mem | awk '{print $4}')
 echo $JDBCFILELOCATION "Драйдевер для рсубд"
 echo $IP_CM5 "ip cm5"
 echo $IP_CMJ "ip cmj"
@@ -103,16 +111,18 @@ echo $resultcmjpool "Результат расчета"
 #Модуль проверки конекшнов в базе
 #Получам сколько всего конектов может использоваться в cm5
 RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'show max_connections' |grep -v max_connections`
+echo $RSUBD_CM5 'всего пулов к cm5'
 #Получаем использованыые пулы
 USED_RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'SELECT COUNT(*) FROM pg_stat_activity' |grep -v count`
+echo $USED_RSUBD_CM5 'пулов занято к базе см5 '
 #считаем % для cm5
 result_pool_cm5=$(echo "$USED_RSUBD_CM5/$RSUBD_CM5" | bc -l)
 #считаем % для cm5
 result_pool_cm5_1=$(echo "$result_pool_cm5*100" |bc -l )
-echo $result_pool_cm5
-echo $result_pool_cm5_1
+echo $result_pool_cm5 '% cm5'
+echo $result_pool_cm5_1 '% пулов занято к базе см5'
 #расичтывем условия для cm5
-if (( $(echo "$result_pool_cm5_1 > $dcm5" |bc -l) ));
+if (( $(echo "$result_pool_cm5_1 > $dbcm5" |bc -l) ));
 then
     echo "yes" #если да то присуждаем бал к недоступонсти системы
     errorpoolcm5=1
@@ -121,20 +131,36 @@ else
 fi
 
 RSUBD_CMJ=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c 'show max_connections' |grep -v max_connections`
+echo $RSUBD_CMJ 'Получаем  пулы cmj'
 #Получаем использованыые пулы
 USED_RSUBD_CMJ=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c 'SELECT COUNT(*) FROM pg_stat_activity' |grep -v count`
+echo $USED_RSUBD_CMJ 'олучаем использованыые пулы cmj'
 #считаем % для cm5
 result_pool_cmj=$(echo "$USED_RSUBD_CMJ/$RSUBD_CMJ" | bc -l)
 #считаем % для cm5
 result_pool_cmj_1=$(echo "$result_pool_cmj*100" |bc -l )
-
+echo $result_pool_cmj '% cmj'
+echo $result_pool_cmj_1 '% пулов занято к базе смj'
 #расичтывем условия для cm5
-if (( $(echo "$result_pool_cmj_1 > $dcm5" |bc -l) ));
+if (( $(echo "$result_pool_cmj_1 > $dbcmj" |bc -l) ));
 then
     echo "yes" #если да то присуждаем бал к недоступонсти системы
     errorpoolcmJ=1
 else
     echo "no" #пулы меньше нужного значения не чего не делаем
 fi
-
-
+#Проверяем дотсупоность API системы
+if curl -u $AuthToken $CHECKURL -m 10 |grep $hhtpport
+then
+  echo $CHECKURL 'все норм'
+else
+  echo $CHECKURL 'присваем бал аврии'
+  httperror= 1
+fi
+#проверяем кол во ОЗУ в систтеме
+if [ "$ozy" -le "$oom" ]
+then
+  oomerror=1
+else
+  echo 'идем дальше'
+fi
