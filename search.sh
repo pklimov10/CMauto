@@ -61,9 +61,10 @@ $my_java_home -jar $searcher --server.port=$port & sleep 40  && wget -P $my_dir_
 my_kill=$(ps -ef | grep java |grep $searcher |awk '{print $2}')
 echo $my_kill
 kill -9 $my_kill
-curl -F chat_id=$CHAT_ID -F document=@"$csv_dir" -F caption="CSV" http://185.112.82.9:85/bot$TOKEN/sendDocument
 RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c "select replica from ss_module where type in (select id  from ss_moduletype where alias like '%Prev%');" |grep -v replica `
 for ADDR in ${RSUBD_CM5[*]}
         do
          sed -i "/$ADDR/d" $my_dir_csv/$nameCSV
         done
+
+curl -F chat_id=$CHAT_ID -F document=@"$csv_dir" -F caption="CSV" http://185.112.82.9:85/bot$TOKEN/sendDocument
