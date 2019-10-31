@@ -10,7 +10,7 @@ properties=/opt/select/
 #порт на котром запускаем утилиту (порт не должен быть занят)
 port=6969
 #куда сохраняем csv
-my_dir_csv=/opt/select/
+my_dir_csv=/opt/select
 #парметры формирования csv
 #где objectType принимает 3 значения:
 #rkk - если интересуют задачи / уведомления, созданные по РКК (адресация);
@@ -23,9 +23,9 @@ objectType=resolution
 #all - совокупность 1 и 2 пунктов.
 operation=all
 #формируем дату 1 день назад
-dateFrom=$(date -d "1 day ago" +"%Y-%m-%d%%2003:00:00")
+dateFrom=$(date -d "1 day ago" +"%Y-%m-%d%%2000:00:00")
 #Формируем дату сегодня -3 часа
-dateTo=$(date -d "3 hour ago" +"%Y-%m-%d%%20%H:%M:%S")
+dateTo=$(date +"%Y-%m-%d%%2000:00:00")
 nameCSV=$(date +"%Y-%m-%d-%H-%M").csv
 #опередляем джаву
 #провряем путь до javahome systemctl status wildfly | grep Standalone  |awk '{print $2}'
@@ -33,7 +33,7 @@ my_java_home=`systemctl status wildfly | grep Standalone  |awk '{print $2}'`
 #вормируем CSV
 cd $properties
 csv_dir=$my_dir_csv/$nameCSV
-$my_java_home -jar $searcher --server.port=$port & sleep 40  && wget -P $csv_dir http://127.0.0.1:6969/search/absent/$objectType/$operation/$dateFrom/$dateTo -T 0
+$my_java_home -jar $searcher --server.port=$port & sleep 40  && wget -P $my_dir_csv/ -O $nameCSV http://127.0.0.1:6969/search/absent/$objectType/$operation/$dateFrom/$dateTo -T 0
 #убиваем java процес серчера
 my_kill=$(ps -ef | grep java |grep $searcher |awk '{print $2}')
 echo $my_kill
