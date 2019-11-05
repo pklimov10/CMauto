@@ -40,10 +40,7 @@ echo $DB_CN5_NAME "Получаем название базы cm5"
 echo $DB_CM5_USER "полчаем юзера для РСУБД CM5"
 echo $DB_CM5_PASS "Получаем пароль для РСУБД cm5"
 
-echo "Поступило пакетов из МЭДО"  >> $REPORT_FILE
-echo "" >> $REPORT_FILE
-
-$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $MEDO_DB_ADDRESS -p $PORT_MEDO -U $LOGIN_MEDO -W $PASSWD_MEDO -d $DB_NAME_MEDO -c  "select count(distinct(e.*))
+Received_packages_from_MEDO=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $MEDO_DB_ADDRESS -p $PORT_MEDO -U $LOGIN_MEDO -W $PASSWD_MEDO -d $DB_NAME_MEDO -c  "select count(distinct(e.*))
 from esd e
 join service_consumer sc on e.service_consumer = sc.id
 join event_log el on el.esd = e.id
@@ -51,14 +48,11 @@ join event_type et on el.event_type = et.id
 where e.created_date between '$DATE 00:00:00' and '$DATE 23:59:59'
 and not (lower(e.theme) like '%квитанция%' or lower(e.theme) like '%уведомление%')
 and lower(et.name) = lower('получение')
-and sc.name='Default';" >> $REPORT_FILE
-
-
-echo "Передано проектов в СМ5 из МЭДО"  >> $REPORT_FILE
+and sc.name='Default';" |grep -v count `
+echo "Поступило пакетов из МЭДО:" $Received_packages_from_MEDO >> $REPORT_FILE
 echo "" >> $REPORT_FILE
 
-
-$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $MEDO_DB_ADDRESS -p $PORT_MEDO -U $LOGIN_MEDO -W $PASSWD_MEDO -d $DB_NAME_MEDO -c "select count(distinct(e.*))
+Projects_transferred_to_CM5_from_MEDO=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $MEDO_DB_ADDRESS -p $PORT_MEDO -U $LOGIN_MEDO -W $PASSWD_MEDO -d $DB_NAME_MEDO -c "select count(distinct(e.*))
 from esd e
 join service_consumer sc on e.service_consumer = sc.id
 join event_log el on el.esd = e.id
@@ -66,14 +60,11 @@ join event_type et on el.event_type = et.id
 where e.created_date between '$DATE 00:00:00' and '$DATE 23:59:59'
 and not (lower(e.theme) like '%квитанция%' or lower(e.theme) like '%уведомление%')
 and lower(et.name) = lower('отправка')
-and sc.name='Default';" >> $REPORT_FILE
-
-
-echo "Доставлено пакетов в СМ5 из МЭДО"  >> $REPORT_FILE
+and sc.name='Default';" |grep -v count`
+echo "Передано проектов в СМ5 из МЭДО:" $Projects_transferred_to_CM5_from_MEDO >> $REPORT_FILE
 echo "" >> $REPORT_FILE
 
-
-$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $MEDO_DB_ADDRESS -p $PORT_MEDO -U $LOGIN_MEDO -W $PASSWD_MEDO -d $DB_NAME_MEDO -c "select count(distinct(e.*))
+Delivered_packages_to_CM5_from_MEDO=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $MEDO_DB_ADDRESS -p $PORT_MEDO -U $LOGIN_MEDO -W $PASSWD_MEDO -d $DB_NAME_MEDO -c "select count(distinct(e.*))
 from esd e
 join service_consumer sc on e.service_consumer = sc.id
 join event_log el on el.esd = e.id
@@ -81,27 +72,43 @@ join event_type et on el.event_type = et.id
 where e.created_date between '$DATE 00:00:00' and '$DATE 23:59:59'
 and not (lower(e.theme) like '%квитанция%' or lower(e.theme) like '%уведомление%')
 and lower(et.name) = lower('доставка')
-and sc.name='Default';" >> $REPORT_FILE
-
-echo "Создано проектов по пакетам из МЭДО в СМ5 входящие"  >> $REPORT_FILE
+and sc.name='Default';" |grep -v count`
+echo "Доставлено пакетов в СМ5 из МЭДО:" $Delivered_packages_to_CM5_from_MEDO  >> $REPORT_FILE
 echo "" >> $REPORT_FILE
 
-$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c "with dates as (select '$DATE 00:00:00.000'::timestamp as date_start , '$DATE 23:59:59.000'::timestamp as date_end)
+Created_projects_for_packages_from_MEDO_in_CM5_incoming=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c "with dates as (select '$DATE 00:00:00.000'::timestamp as date_start , '$DATE 23:59:59.000'::timestamp as date_end)
 select count(distinct(f_dp_inputrkk.*))
 from f_dp_rkkbase join f_dp_inputrkk on f_dp_inputrkk.id=f_dp_rkkbase.id
 where (not f_dp_rkkbase.medo_doc_guid is null) and (f_dp_rkkbase.medo_doc_guid<>'')
 and (f_dp_rkkbase.created_date between (select date_start from dates ) and (select date_end from dates ))
-and f_dp_inputrkk.medogatestate=2;" >> $REPORT_FILE
-
-echo "Создано проектов по пакетам из МЭДО в СМ5 ОГ"  >> $REPORT_FILE
+and f_dp_inputrkk.medogatestate=2;" |grep -v count`
+echo "Создано проектов по пакетам из МЭДО в СМ5 входящие:" $Created_projects_for_packages_from_MEDO_in_CM5_incoming  >> $REPORT_FILE
 echo "" >> $REPORT_FILE
 
-$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c "with dates as (select '$DATE 00:00:00.000'::timestamp as date_start , '$DATE 23:59:59.000'::timestamp as date_end)
+Created_projects_on_packages_from_MEDO_in_SM5_exhaust_gas=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c "with dates as (select '$DATE 00:00:00.000'::timestamp as date_start , '$DATE 23:59:59.000'::timestamp as date_end)
 select count(distinct(f_dp_requestrkk.*))
 from f_dp_rkkbase join f_dp_requestrkk  on f_dp_requestrkk.id=f_dp_rkkbase.id
 where (not f_dp_rkkbase.medo_doc_guid is null) and (f_dp_rkkbase.medo_doc_guid<>'')
 and (f_dp_rkkbase.created_date between (select date_start from dates ) and (select date_end from dates ))
-and f_dp_requestrkk.medogatestate=2;" >> $REPORT_FILE
+and f_dp_requestrkk.medogatestate=2;" |grep -v count`
+echo "Создано проектов по пакетам из МЭДО в СМ5 ОГ:" $Created_projects_on_packages_from_MEDO_in_SM5_exhaust_gas  >> $REPORT_FILE
+echo "" >> $REPORT_FILE
+
+RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $MEDO_DB_ADDRESS -p $PORT_MEDO -U $LOGIN_MEDO -W $PASSWD_MEDO -d $DB_NAME_MEDO -c "select e.created_date, e.foldername,e.theme,el.description
+from esd e
+join service_consumer sc on e.service_consumer = sc.id
+join event_log el on el.esd = e.id
+join event_type et on el.event_type = et.id
+where e.created_date between '$DATE 00:00:00' and '$DATE 23:59:59'
+and not (lower(e.theme) like '%квитанция%' or lower(e.theme) like '%уведомление%')
+and et.is_error=1;" |grep -v created_date `
+if [[ ! -z $RSUBD_CM5 ]];
+then
+    echo "ошибки прием:" $RSUBD_CM5 >> $REPORT_FILE
+else
+    echo "ошибк приема нет " >> $REPORT_FILE
+fi
+echo "" >> $REPORT_FILE
 
 echo "Проверяем общее количество принятых/отправленных документов за сутки по б/д cm5"  >> $REPORT_FILE
 echo "" >> $REPORT_FILE
@@ -122,7 +129,7 @@ union
 select 'Принято ОГ', count (f_dp_rkkbase.id)
 from f_dp_rkkbase join f_dp_requestrkk on f_dp_requestrkk.id=f_dp_rkkbase.id
 where (not f_dp_rkkbase.medo_doc_guid is null) and (f_dp_rkkbase.medo_doc_guid<>'')
-and (f_dp_rkkbase.created_date between (select date_start from dates ) and (select date_end from dates ))" >> $REPORT_FILE
+and (f_dp_rkkbase.created_date between (select date_start from dates ) and (select date_end from dates ))" |grep -v count >> $REPORT_FILE
 
 echo "Полученные во Входящие (по cm5)"  >> $REPORT_FILE
 echo "" >> $REPORT_FILE
@@ -134,7 +141,7 @@ join f_dp_rkk on f_dp_rkk.id=f_dp_rkkbase.id
 join domain_object_type_id on domain_object_type_id.id=f_dp_inputrkk.id_type
 join nunid2punid_map on (((substring(nunid2punid_map.punid,5,12):: bigint)=f_dp_inputrkk.id) and (substring(nunid2punid_map.punid,0,5):: bigint)=f_dp_inputrkk.id_type)
 where (not f_dp_rkkbase.medo_doc_guid is null) and (f_dp_rkkbase.medo_doc_guid<>'')
-and (f_dp_rkkbase.created_date between (select date_start from dates ) and (select date_end from dates ));" >> $REPORT_FILE
+and (f_dp_rkkbase.created_date between (select date_start from dates ) and (select date_end from dates ));" |grep -v nunid >> $REPORT_FILE
 
 echo "Полученные в ОГ за сутки"  >> $REPORT_FILE
 echo "" >> $REPORT_FILE
@@ -142,9 +149,10 @@ echo "" >> $REPORT_FILE
 $my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c "with dates as (select '$DATE 00:00:00.000'::timestamp as date_start , '$DATE 23:59:59.000'::timestamp as date_end)
 select DISTINCT (nunid2punid_map.nunid) as nunid, f_dp_rkkbase.id as rkk_id,f_dp_sp.regnumber as fnumber, SUBSTRING (f_dp_rkkbase.subject,1, 90) as subj, f_dp_requestrkk.corrlastname as lastname, f_dp_requestrkk.corrfirstname as firstname
 from f_dp_rkkbase join f_dp_requestrkk on f_dp_requestrkk.id=f_dp_rkkbase.id
-join f_dp_rkk on f_dp_rkk.id=f_dp_rkkbase.ida
+join f_dp_rkk on f_dp_rkk.id=f_dp_rkkbase.id
 join f_dp_sp on f_dp_sp.hierroot=f_dp_rkkbase.id
 join domain_object_type_id on domain_object_type_id.id=f_dp_requestrkk.id_type
 join nunid2punid_map on (((substring(nunid2punid_map.punid,5,12):: bigint)=f_dp_requestrkk.id) and (substring(nunid2punid_map.punid,0,5):: bigint)=f_dp_requestrkk.id_type)
 where (not f_dp_rkkbase.medo_doc_guid is null) and (f_dp_rkkbase.medo_doc_guid<>'')
-and (f_dp_rkkbase.created_date between (select date_start from dates ) and (select date_end from dates ));" >> $REPORT_FILE
+and (f_dp_rkkbase.created_date between (select date_start from dates ) and (select date_end from dates ));"  |grep -v nunid>> $REPORT_FILE
+
