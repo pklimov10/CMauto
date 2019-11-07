@@ -35,7 +35,7 @@ echo $RSUBD_CM5 > $log_dir/$(date +"%Y-%m-%d-%H-%M").csv
 if [[ ! -z $RSUBD_CM5 ]];
 then
     echo "yes" 'есть строки' > $log_dir/$(date +"%Y-%m-%d-%H-%M").csv
-    $my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c "select a.description, count(a.description) from ag_data_message am join ag_agent a on am.agent=a.id where am.excluded = 1 and am.created_date > '$lastday'  group by a.description order by description asc"
+    $my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c "update ag_data_message set excluded = 0 where (excluded = 1 and id in (select am.id from ag_data_message am join ag_agent a on am.agent=a.id where am.excluded = 1 and am.created_date > '$lastday 00:00:00.00'))"
 else
     echo "no" 'СТрок нет' > $log_dir/$(date +"%Y-%m-%d-%H-%M").csv
 fi
