@@ -2,7 +2,7 @@
 #куда сохраняем отчет
 REPORT_FILE=/opt/medo/$(date +"%Y-%m-%d-%H-%M").csv
 #дата за которую ищем документы
-DATE=`date +%Y-%m-%d`
+DATE=`date -d '1 day ago' +%Y-%m-%d`
 #Адрес РСУБД МЭДО сревреа
 MEDO_DB_ADDRESS=
 #порт к базе РСУБД МЭДО
