@@ -6,7 +6,7 @@ lastday=$(date -d '7 day ago' +'%Y-%m-%d')
 # Ручной ввод закончен, дальше вычисляется автоматически. Править при необходимости
 STANDALONEXML=$WFHOME/standalone/configuration/standalone.xml
 #Опредялем дравйер для РСУБД
-JDBCDRIVERNAME=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"'  |grep driver | sed 's/</ /g; s/>/ /g' |awk '{print $2}'`
+JDBCDRIVERNAME=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"'  |grep driver | sed 's/</ /g; s/>/ /g' |awk '{print $2}'  |grep -v name`
 #Формируем путь до дравйера для РСУБД
 JDBCFILELOCATION=$WFHOME/standalone/deployments/$JDBCDRIVERNAME
 #получаем ip адрес cm5
