@@ -7,12 +7,23 @@ MyAppUri="cm5div6/api/"
 AuthToken="login:password"
 # %занятых пулов см5 при которых срабатывает скрипт дефолтно 95
 dcm5=95
+# %занятых пулов смj при которых срабатывает скрипт дефолтно 95
+dcmj=95
 # %занятых окнекшанов см5 при которых срабатывает скрипт дефолтно 70
 dbcmj=70
 # %занятых окнекшанов смJ при которых срабатывает скрипт дефолтно 95
 dbcm5=70
 #кол во озу в мегобайтах когда скрипт срабатывает
 oom=90000
+#Если wf выключин то выходим из скрипта
+ps_out=`ps -ef | grep $1 | grep -v 'grep' | grep -v $0`
+result=$(echo $ps_out | grep "$1")
+if [[ "$result" != "" ]];then
+    echo "Running"
+else
+    echo "Not Running"
+    exit
+fi
 # Ручной ввод закончен, дальше вычисляется автоматически. Править при необходимости
 STANDALONEXML=$WFHOME/standalone/configuration/standalone.xml
 #Получение ip сервера
@@ -88,10 +99,10 @@ resultcm5pool=$(echo "$resultcm5*100" |bc -l )
 #расичтывем условия для cm5
 if (( $(echo "$resultcm5pool > $dcm5" |bc -l) ));
 then
-    echo "yes" #если да то присуждаем бал к недоступонсти системы
+    echo "yes" "если да то присуждаем бал к недоступонсти системы"
     errorcm5=1
 else
-    echo "no" #пулы меньше нужного значения не чего не делаем
+    echo "no" "пулы меньше нужного значения не чего не делаем"
 fi
 echo $resultcm5pool "Результат расчета"
 #считаем % для cml
@@ -99,12 +110,12 @@ resultcmj=$(echo "$cmja/$cmjpool" | bc -l)
 #считаем % для cml
 resultcmjpool=$(echo "$resultcmj*100" |bc -l )
 #расичтывем условия для cml
-if (( $(echo "$resultcmjpool > $dcm5" |bc -l) ));
+if (( $(echo "$resultcmjpool > $dcmj" |bc -l) ));
 then
-    echo "yes" #если да то присуждаем бал к недоступонсти системы
+    echo "yes" "если да то присуждаем бал к недоступонсти системы"
     errorcmj=1
 else
-    echo "no" #пулы меньше нужного значения не чего не делаем
+    echo "no" "пулы меньше нужного значения не чего не делаем"
 fi
 echo $resultcmjpool "Результат расчета"
 
@@ -155,7 +166,7 @@ then
   echo $CHECKURL 'все норм'
 else
   echo $CHECKURL 'присваем бал аврии'
-  httperror= 1
+  httperror=1
 fi
 #проверяем кол во ОЗУ в систтеме
 if [ "$ozy" -le "$oom" ]
@@ -164,3 +175,16 @@ then
 else
   echo 'идем дальше'
 fi
+#Проверяем доступность службы если службы выключена то выходим
+ps_out=`ps -ef | grep $1 | grep -v 'grep' | grep -v $0`
+result=$(echo $ps_out | grep "$1")
+if [[ "$result" != "" ]];then
+    echo "Running"
+else
+    echo "Not Running"
+    exit
+fi
+
+#Собираем информацию при аврии
+#записываем информацию о датасоурсах WF
+$errorcm5+$errorcmj+$errorpoolcm5+$errorpoolcmJ+$httperror+$oomerror
