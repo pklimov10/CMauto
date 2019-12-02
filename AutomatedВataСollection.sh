@@ -2,6 +2,8 @@
 #переменные окружения
 #Путь до WildflyHome например /opt/wildfly
 WFHOME=/opt/wildfly
+#Путь куда сохранем отчет об авраии
+ERRORHOME=/opt/error/
 # Суффикс ресурса для проверки доступности
 MyAppUri="cm5div6/api/"
 AuthToken="login:password"
@@ -15,6 +17,7 @@ dbcmj=70
 dbcm5=70
 #кол во озу в мегобайтах когда скрипт срабатывает
 oom=90000
+#число ошибок когда начинаем собирать
 #Если wf выключин то выходим из скрипта
 ps_out=`ps -ef | grep $1 | grep -v 'grep' | grep -v $0`
 result=$(echo $ps_out | grep "$1")
@@ -186,5 +189,18 @@ else
 fi
 
 #Собираем информацию при аврии
-#записываем информацию о датасоурсах WF
-$errorcm5+$errorcmj+$errorpoolcm5+$errorpoolcmJ+$httperror+$oomerror
+errorrate=$(echo "$errorcm5+$errorcmj+$errorpoolcm5+$errorpoolcmJ+$httperror+$oomerror" |bc -l )
+if (( $(echo "$errorrate >= $maxerror" |bc -l) ));
+then
+    echo "yes" #Насиниаем мбор информации об аврии
+    #Собираем и архивируем лог
+    #Собираем инормацию о пулах
+    #СОбиранем информацию о конекшинах
+    tar -czf $ERRORHOME/$(date +"%Y-%m-%d-%H-%M").tar.gz $WFHOME/standalone/log/*
+    $WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CM5/statistics=pool:read-resource(include-runtime=true)" > $ERRORHOME/infopoolcm5.csv
+    $WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CMJ/statistics=pool:read-resource(include-runtime=true)" > $ERRORHOME/infopoolcmj.csv
+
+
+else
+    echo "no" #не чего не делаем выходим из скрипта
+fi
