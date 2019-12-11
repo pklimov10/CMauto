@@ -18,6 +18,7 @@ dbcm5=70
 #кол во озу в мегобайтах когда скрипт срабатывает
 oom=90000
 #число ошибок когда начинаем собирать
+maxerror=2
 #Если wf выключин то выходим из скрипта
 ps_out=`ps -ef | grep $1 | grep -v 'grep' | grep -v $0`
 result=$(echo $ps_out | grep "$1")
@@ -106,6 +107,7 @@ then
     errorcm5=1
 else
     echo "no" "пулы меньше нужного значения не чего не делаем"
+    errorcm5=0
 fi
 echo $resultcm5pool "Результат расчета"
 #считаем % для cml
@@ -119,6 +121,7 @@ then
     errorcmj=1
 else
     echo "no" "пулы меньше нужного значения не чего не делаем"
+    errorcmj=0
 fi
 echo $resultcmjpool "Результат расчета"
 
@@ -142,6 +145,7 @@ then
     errorpoolcm5=1
 else
     echo "no" #пулы меньше нужного значения не чего не делаем
+    errorpoolcm5=0
 fi
 
 RSUBD_CMJ=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c 'show max_connections' |grep -v max_connections`
@@ -162,11 +166,13 @@ then
     errorpoolcmJ=1
 else
     echo "no" #пулы меньше нужного значения не чего не делаем
+    errorpoolcmJ=0
 fi
 #Проверяем дотсупоность API системы
 if curl -u $AuthToken $CHECKURL -m 10 |grep $hhtpport
 then
   echo $CHECKURL 'все норм'
+  httperror=0
 else
   echo $CHECKURL 'присваем бал аврии'
   httperror=1
@@ -177,6 +183,7 @@ then
   oomerror=1
 else
   echo 'идем дальше'
+  oomerror=0
 fi
 #Проверяем доступность службы если службы выключена то выходим
 ps_out=`ps -ef | grep $1 | grep -v 'grep' | grep -v $0`
@@ -199,6 +206,13 @@ then
     tar -czf $ERRORHOME/$(date +"%Y-%m-%d-%H-%M").tar.gz $WFHOME/standalone/log/*
     $WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CM5/statistics=pool:read-resource(include-runtime=true)" > $ERRORHOME/infopoolcm5.csv
     $WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CMJ/statistics=pool:read-resource(include-runtime=true)" > $ERRORHOME/infopoolcmj.csv
+    ZCM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity'`
+    ZCMJ=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c 'select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity'`
+    cat $ZCM5 > $ERRORHOME/$(date +"zapros-CM5-%Y-%m-%d-%H-%M").csv
+    cat $ZCMJ > $ERRORHOME/$(date +"zapros-CMJ-%Y-%m-%d-%H-%M").csv
+    PID=$(jps -v |grep "\-Dlogging.configuration=file:$WFHOME/standalone" |grep Xmx |awk '{print $1}')
+    echo $PID
+    jstack -F $PID >> $ERRORHOME/$(date +"ThreadDump-%Y-%m-%d-%H-%M").csv
 
 
 else
