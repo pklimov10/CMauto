@@ -14,7 +14,7 @@ yum install  http://rpms.remirepo.net/enterprise/remi-release-7.rpm -y
 yum install yum-utils -y
 yum-config-manager --enable remi-php71 -y
 #Устанавливаем php 7.1 и модули к нему.
-yum install php71 php-fpm php-cli php-mysql php-gd php-ldap php-odbc php-pdo php-pecl-memcache php-pear php-xml php-xmlrpc php-mbstring php-snmp php-soap php-bcmath -y
+yum install php71 php-fpm php-cli php-mysql  php-gd php-ldap php-odbc php-pdo php-pecl-memcache php-pear php-xml php-xmlrpc php-mbstring php-snmp php-soap php-bcmath -y
 #Запускаем php-fpm и добавляем в автозагрузку.
 chown -R nginx:nginx /var/lib/php/session
 chown -R nginx:nginx /etc/zabbix/web
@@ -50,7 +50,7 @@ sudo -u postgres createuser  zabbix
 psql -U postgres -t -c "alter user zabbix with encrypted password 'zabbix'";
 sudo -u postgres createdb -O zabbix zabbix
 zcat /usr/share/doc/zabbix-server-pgsql*/create.sql.gz | sudo -u zabbix psql zabbix
-sed -i 's/# DBPassword=zabbix/DBPassword=zabbix/' /etc/zabbix/zabbix_server.conf
+sed -i 's/# DBPassword=/DBPassword=zabbix/' /etc/zabbix/zabbix_server.conf
 systemctl reload postgresql-12
 cat /dev/null > /etc/nginx/conf.d/default.conf
 echo  'server {
@@ -86,7 +86,7 @@ echo  'server {
 nginx -s reload
 chown -R nginx:nginx /var/lib/php/session
 chown -R nginx:nginx /etc/zabbix/web
-systemctl start php-fpm
+systemctl restart php-fpm
 echo  "Пароль от РСУБД zabbix"
 echo  "Доступно по ссылке http://ip"
 echo  "В разделе DatabaseHost в вэб морде прописать 127.0.0.1 место localhost"
