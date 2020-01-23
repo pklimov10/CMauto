@@ -1,4 +1,8 @@
 #!/bin/bash
+red=$(tput setf 4)
+green=$(tput setf 2)
+reset=$(tput sgr0)
+toend=$(tput hpa $(tput cols))$(tput cub 6)
 #Токен бота
 TOKEN=
 #id чата
@@ -14,6 +18,70 @@ port=6969
 #куда сохраняем csv
 my_dir_csv=/opt/select
 #парметры формирования csv
+if [ -n "$1" ]
+then
+echo -n 'objectType принимает 3 значения:'
+echo -n 'rkk - если интересуют задачи / уведомления, созданные по РКК (адресация)'
+echo -n 'resolution - задачи / уведомления, которые должны были быть созданы на основании резолюции (исполнение, контроль)'
+echo -n 'all - и РКК, и резолюция'
+echo -n 'ввести одно из значений: rkk resolution all:'
+echo ''
+read objectType
+case "$objectType" in
+    rkk) echo "Ввели «rkk», продолжаем..."
+        ;;
+    resolution) echo "Ввели «resolution», продолжаем..."
+        exit 0
+        ;;
+    all) echo "Ввели «all», продолжаем..."
+        ;;
+    *) echo -n "${red} Значение не верно завершаем работу"
+       exit 0
+       ;;
+esac
+echo $objectType
+echo -n 'operation - принимает 3 значения:'
+echo -n 'created - то есть задачи/уведомления, которые должны были быть созданы на основании факта создания или публикации документа'
+echo -n 'modified - задачи/уведомления, которые должны были быть созданы на основании факта редактирования списка адресатов (для РКК) или исполнителей и контроля (для резолюций)'
+echo -n 'all - совокупность 1 и 2 пунктов'
+echo -n 'ввести одно из значений: created modified all:'
+echo ''
+read operation
+case "$operation" in
+    rkk) echo "Ввели «created», продолжаем..."
+        ;;
+    resolution) echo "Ввели «modified», продолжаем..."
+        exit 0
+        ;;
+    all) echo "Ввели «all», продолжаем..."
+        ;;
+    *) echo -n "${red} Значение не верно завершаем работу"
+       exit 0
+       ;;
+esac
+echo $operation
+echo -n 'dateFrom - дата, начиная с которой приложение должно искать документы;'
+echo -n 'Сначало вводим дату например - 2019-07-30:     '
+read dateFrom1
+echo $dateFrom1
+echo -n 'теерь вводим время например 13:30:00:     '
+read dateFrom2
+echo $dateFrom2
+dateFrom=$dateFrom1%20$dateFrom2
+echo $dateFrom
+
+echo -n 'dateTo - дата, по которую приложение должно искать документы.;'
+echo -n 'Сначало вводим дату например - 2019-10-30:     '
+read dateFrom1
+echo $dateFrom1
+echo -n 'теперь вводим время например 15:30:00:     '
+read dateFrom2
+echo $dateFrom2
+dateFrom=$dateFrom1%20$dateFrom2
+echo $dateFrom
+
+else
+echo "No parameters found. "
 #где objectType принимает 3 значения:
 #rkk - если интересуют задачи / уведомления, созданные по РКК (адресация);
 #resolution - задачи / уведомления, которые должны были быть созданы на основании резолюции (исполнение, контроль);
@@ -28,6 +96,7 @@ operation=all
 dateFrom=$(date -d "1 day ago" +"%Y-%m-%d%%2000:00:00")
 #Формируем дату сегодня -3 часа
 dateTo=$(date +"%Y-%m-%d%%2000:00:00")
+fi
 nameCSV=$(date +"%Y-%m-%d-%H-%M").csv
 # Ручной ввод закончен, дальше вычисляется автоматически. Править при необходимости
 STANDALONEXML=$WFHOME/standalone/configuration/standalone.xml
