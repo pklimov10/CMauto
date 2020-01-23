@@ -72,13 +72,13 @@ echo $dateFrom
 
 echo -n 'dateTo - дата, по которую приложение должно искать документы.;'
 echo -n 'Сначало вводим дату например - 2019-10-30:     '
-read dateFrom1
-echo $dateFrom1
+read dateTo1
+echo $dateTo1
 echo -n 'теперь вводим время например 15:30:00:     '
-read dateFrom2
-echo $dateFrom2
-dateFrom=$dateFrom1%20$dateFrom2
-echo $dateFrom
+read dateTo2
+echo $dateTo2
+dateTo=$dateTo1%20$dateTo2
+echo $dateTo
 
 else
 echo "No parameters found. "
