@@ -1,0 +1,33 @@
+SPATH=/local2/cm-data/attachments
+attachments=`ls $SPATH`
+for ADDR1 in ${attachments[*]}
+        do
+          	ADDR2=`echo $ADDR1 | awk '/[[:lower:]]/{print $0}'`
+    for ADDR3 in ${ADDR2[*]}
+        do
+          	ADDR4=`echo $ADDR3 |sed  '/^[[:blank:]]*$/d'`
+                echo $ADDR4
+         if [ -d $SPATH/$ADDR4/$YEAR/$MONTH/$DAY ]; then
+
+if ! [ -d $DESTPATH/$ADDR4/$YEAR/ ]; then
+        mkdir $DESTPATH/$ADDR4/$YEAR
+        chown wildfly.wildfly $DESTPATH/$YEAR
+fi
+
+if ! [ -d $DESTPATH/$ADDR4/$YEAR/$MONTH/ ]; then
+        mkdir $DESTPATH/$ADDR4/$YEAR/$MONTH
+        chown wildfly.wildfly $DESTPATH/$ADDR4/$YEAR/$MONTH
+fi
+
+if ! [ -d $DESTPATH/$ADDR4/$YEAR/$MONTH/$DAY/ ]; then
+        mkdir $DESTPATH/$ADDR4/$YEAR/$MONTH/$DAY
+        chown wildfly.wildfly $DESTPATH/$ADDR4/$YEAR/$MONTH/$DAY
+fi
+
+rsync -a $SPATH/$ADDR4/$YEAR/$MONTH/$DAY/ $DESTPATH/$ADDR4/$YEAR/$MONTH/$DAY
+
+
+fi
+        done
+
+done
