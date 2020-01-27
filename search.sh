@@ -67,8 +67,8 @@ echo $dateFrom1
 echo -n 'теерь вводим время например 13:30:00:     '
 read dateFrom2
 echo $dateFrom2
-dateFrom=$dateFrom1%20$dateFrom2
 echo $dateFrom
+DATAa=`cat $dateFrom2 | sed 's/ //g' |sed  's/:/ /g; s/;/ /g' |awk '{print $2}'`
 
 echo -n 'dateTo - дата, по которую приложение должно искать документы.;'
 echo -n 'Сначало вводим дату например - 2019-10-30:     '
@@ -79,7 +79,33 @@ read dateTo2
 echo $dateTo2
 dateTo=$dateTo1%20$dateTo2
 echo $dateTo
+echo $dateFrom
+DATAa=`echo $dateFrom2 |sed  's/:/ /g; s/;/ /g' |awk '{print $1}'`
+DATAb=`echo $dateFrom2 |sed  's/:/ /g; s/;/ /g' |awk '{print $2}'`
+DATAz=`echo $dateFrom2 |sed  's/:/ /g; s/;/ /g' |awk '{print $3}'`
+echo $DATAa
+echo $DATAb
+echo $DATAz
+DATAc=$(($DATAa - 3))
+echo $DATAc
+if [ "$DATAc" -lt "0" ]
+then
+    	DATAc=0
+else
+    	echo $DATAc
+fi
 
+echo $DATAc
+if [ "$DATAc" -le "9" ]
+then
+    	DATAc=$DATAc'0'
+else
+    	echo $DATAc
+fi
+
+echo $DATAc
+dateFrom=$dateFrom1%20$DATAc:$DATAb:$DATAz
+echo $dateFrom
 else
 echo "No parameters found. "
 #где objectType принимает 3 значения:
