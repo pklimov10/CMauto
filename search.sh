@@ -61,26 +61,22 @@ case "$operation" in
 esac
 echo $operation
 echo -n 'dateFrom - дата, начиная с которой приложение должно искать документы;'
-echo -n 'Сначало вводим дату например - 2019-07-30:     '
+echo -n 'Сначало вводим дату например - 2019-07-30 Время указваем по МСК:     '
 read dateFrom1
 echo $dateFrom1
 echo -n 'теерь вводим время например 13:30:00:     '
 read dateFrom2
 echo $dateFrom2
-echo $dateFrom
-DATAa=`cat $dateFrom2 | sed 's/ //g' |sed  's/:/ /g; s/;/ /g' |awk '{print $2}'`
 
 echo -n 'dateTo - дата, по которую приложение должно искать документы.;'
 echo -n 'Сначало вводим дату например - 2019-10-30:     '
 read dateTo1
 echo $dateTo1
-echo -n 'теперь вводим время например 15:30:00:     '
+echo -n 'теперь вводим время например 15:30:00 Время указваем по МСК:     '
 read dateTo2
 echo $dateTo2
-dateTo=$dateTo1%20$dateTo2
 echo $dateTo
-echo $dateFrom
-DATAa=`echo $dateFrom2 |sed  's/:/ /g; s/;/ /g' |awk '{print $1}'`
+DATAa=`echo $dateFrom2 |sed  's/:/ /g; s/;/ /g' |awk '{print $1}' | sed 's/^0*//'`
 DATAb=`echo $dateFrom2 |sed  's/:/ /g; s/;/ /g' |awk '{print $2}'`
 DATAz=`echo $dateFrom2 |sed  's/:/ /g; s/;/ /g' |awk '{print $3}'`
 echo $DATAa
@@ -98,7 +94,7 @@ fi
 echo $DATAc
 if [ "$DATAc" -le "9" ]
 then
-    	DATAc=$DATAc'0'
+    	DATAc='0'$DATAc
 else
     	echo $DATAc
 fi
@@ -106,6 +102,31 @@ fi
 echo $DATAc
 dateFrom=$dateFrom1%20$DATAc:$DATAb:$DATAz
 echo $dateFrom
+
+DATAx=`echo $dateTo2 |sed  's/:/ /g; s/;/ /g' |awk '{print $1}' | sed 's/^0*//'`
+DATAc=`echo $dateTo2 |sed  's/:/ /g; s/;/ /g' |awk '{print $2}'`
+DATAv=`echo $dateTo2 |sed  's/:/ /g; s/;/ /g' |awk '{print $3}'`
+echo $DATAx
+echo $DATAc
+echo $DATAv
+DATAn=$(($DATAx - 3))
+echo $DATAn
+if [ "$DATAn" -lt "0" ]
+then
+    	DATAn=0
+else
+    	echo $DATAn
+fi
+
+echo $DATAn
+if [ "$DATAn" -le "9" ]
+then
+    	DATAn='0'$DATAn
+else
+    	echo $DATAn
+fi
+dateTo=$dateTo1%20$DATAn:$DATAc:$DATAv
+echo $dateTo
 else
 echo "No parameters found. "
 #где objectType принимает 3 значения:
