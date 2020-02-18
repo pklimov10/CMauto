@@ -212,6 +212,7 @@ then
     echo $PID
     jstack -F $PID >> $ERRORHOME/$(date +"ThreadDump-%Y-%m-%d-%H-%M").csv
     jstat -gccapacity $PID >> $ERRORHOME/$(date +"gcc-%Y-%m-%d-%H-%M").csv
+    #systemctl restart wildfly
 
 else
     echo "no" #не чего не делаем выходим из скрипта
