@@ -211,7 +211,7 @@ then
     PID=$(jps -v |grep "\-Dlogging.configuration=file:$WFHOME/standalone" |grep Xmx |awk '{print $1}')
     echo $PID
     jstack -F $PID >> $ERRORHOME/$(date +"ThreadDump-%Y-%m-%d-%H-%M").csv
-
+    jstat -gccapacity $PID >> $ERRORHOME/$(date +"gcc-%Y-%m-%d-%H-%M").csv
 
 else
     echo "no" #не чего не делаем выходим из скрипта
