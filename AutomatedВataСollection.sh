@@ -5,6 +5,8 @@ WFHOME=/opt/wildfly
 #Путь куда сохранем отчет об авраии
 ERRORHOME=/opt/error/
 # Суффикс ресурса для проверки доступности
+#указать cm5div6 или ssrv
+cmping="cm5div6/af5-services/globalcache/ping/1000"
 MyAppUri="cm5div6/api/"
 AuthToken="login:password"
 # %занятых пулов см5 при которых срабатывает скрипт дефолтно 95
@@ -213,6 +215,7 @@ then
     jstack -F $PID >> $ERRORHOME/$(date +"ThreadDump-%Y-%m-%d-%H-%M").csv
     jstat -gccapacity $PID >> $ERRORHOME/$(date +"gcc-%Y-%m-%d-%H-%M").csv
     #systemctl restart wildfly
+    curl -u $AuthToken "http://"$ip":"$hhtpport"/"$cmping >> $ERRORHOME/$(date +"PING_JMS-%Y-%m-%d-%H-%M").csv
 
 else
     echo "no" #не чего не делаем выходим из скрипта
