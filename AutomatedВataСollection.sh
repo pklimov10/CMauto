@@ -1,4 +1,5 @@
 #!/bin/bash
+###реализовать отчистку архива
 #переменные окружения
 #Путь до WildflyHome например /opt/wildfly
 WFHOME=/opt/wildfly
@@ -205,17 +206,21 @@ then
     #Собираем и архивируем лог
     #Собираем инормацию о пулах
     #СОбиранем информацию о конекшинах
-    tar -czf $ERRORHOME/$(date +"%Y-%m-%d-%H-%M").tar.gz $WFHOME/standalone/log/*
-    $WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CM5/statistics=pool:read-resource(include-runtime=true)" > $ERRORHOME/infopoolcm5.csv
-    $WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CMJ/statistics=pool:read-resource(include-runtime=true)" > $ERRORHOME/infopoolcmj.csv
-    $my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity' > $ERRORHOME/$(date +"zapros-CM5-%Y-%m-%d-%H-%M").csv
-    $my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c 'select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity' > $ERRORHOME/$(date +"zapros-CMJ-%Y-%m-%d-%H-%M").csv
+    tgz="$(date +"%Y-%m-%d-%H-%M")"
+    mkdir $ERRORHOME/$tgz
+    tar -czf $ERRORHOME/$tgz/$(date +"%Y-%m-%d-%H-%M").tar.gz $WFHOME/standalone/log/ ##Переработь сборщик логов сисмтемы
+    $WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CM5/statistics=pool:read-resource(include-runtime=true)" > $ERRORHOME/$tgz/infopoolcm5.csv
+    $WFHOME/bin/jboss-cli.sh --connect --controller=$ip:$port --commands="/subsystem=datasources/xa-data-source=CMJ/statistics=pool:read-resource(include-runtime=true)" > $ERRORHOME/$tgz/infopoolcmj.csv
+    $my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity ORDER BY  time_in_progress desc' > $tgz/$(date +"zapros-CM5-%Y-%m-%d-%H-%M").csv
+    $my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c 'select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity ORDER BY  time_in_progress desc' > $tgz/$(date +"zapros-CMJ-%Y-%m-%d-%H-%M").csv
+    $my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c 'select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity where state = 'active' ORDER BY  time_in_progress desc' > $tgz/$(date +"zapros-active-CM5-%Y-%m-%d-%H-%M").csv
+    $my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c 'select (now() - query_start) as time_in_progress, datname, pid, state, client_addr, client_hostname, client_port, query from pg_stat_activity where state = 'active' ORDER BY  time_in_progress desc' > $tgz/$(date +"zapros-active-CMJ-%Y-%m-%d-%H-%M").csv
     PID=$(jps -v |grep "\-Dlogging.configuration=file:$WFHOME/standalone" |grep Xmx |awk '{print $1}')
     echo $PID
-    jstack -F $PID >> $ERRORHOME/$(date +"ThreadDump-%Y-%m-%d-%H-%M").csv
-    jstat -gccapacity $PID >> $ERRORHOME/$(date +"gcc-%Y-%m-%d-%H-%M").csv
+    jstack -F $PID >> $ERRORHOME/$tgz/$(date +"ThreadDump-%Y-%m-%d-%H-%M").csv
+    jstat -gccapacity $PID >> $ERRORHOME/$tgz/$(date +"gcc-%Y-%m-%d-%H-%M").csv
     #systemctl restart wildfly
-    curl -u $AuthToken "http://"$ip":"$hhtpport"/"$cmping >> $ERRORHOME/$(date +"PING_JMS-%Y-%m-%d-%H-%M").csv
+    curl -u $AuthToken "http://"$ip":"$hhtpport"/"$cmping >> $ERRORHOME/$tgz/$(date +"PING_JMS-%Y-%m-%d-%H-%M").csv
 
 else
     echo "no" #не чего не делаем выходим из скрипта
