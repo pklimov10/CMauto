@@ -148,8 +148,8 @@ WaitCount)
         { echo -n $today  \ $ADDR \ & cat $ERRORHOME/cm5.tmp |grep $ADDR |sed 's/,/ /g; s/>/ /g' |awk '{print $3}' ; } >> $ERRORHOME/$tgz/All_Info_CM5.csv
         { echo -n $today  \ $ADDR \ & cat $ERRORHOME/cmj.tmp |grep $ADDR |sed 's/,/ /g; s/>/ /g' |awk '{print $3}' ; } >> $ERRORHOME/$tgz/All_Info_CMJ.csv
         done
-PID=$(jps -v |grep "\-Dlogging.configuration=file:$WFHOME/standalone" |grep Xmx |awk '{print $1}')
+PID=$(/u01/CM/java/bin/jps -v |grep "\-Dlogging.configuration=file:$WFHOME/standalone" |grep Xmx |awk '{print $1}')
 echo $PID
 #jstack -F $PID >> $ERRORHOME/$tgz/$(date +"ThreadDump-%Y-%m-%d-%H-%M").csv
-jstat -gccapacity $PID >> $ERRORHOME/$tgz/$(date +"gcc-%Y-%m-%d-%H-%M").csv
+/u01/CM/java/bin/jstat -gccapacity $PID >> $ERRORHOME/$tgz/$(date +"gcc-%Y-%m-%d-%H-%M").csv
 done

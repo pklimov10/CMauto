@@ -6,7 +6,7 @@ keep=10 # cколько файлов надо оставлять в день
 #Путь до WildflyHome например /opt/wildfly
 WFHOME=/opt/wildfly
 #Путь куда сохранем отчет об авраии
-ERRORHOME=/opt/error/
+ERRORHOME=/opt/error/test1/
 # Суффикс ресурса для проверки доступности
 #указать cm5div6 или ssrv
 cmping="cm5div6/af5-services/globalcache/ping/1000"
