@@ -153,3 +153,13 @@ echo $PID
 #jstack -F $PID >> $ERRORHOME/$tgz/$(date +"ThreadDump-%Y-%m-%d-%H-%M").csv
 /u01/CM/java/bin/jstat -gccapacity $PID >> $ERRORHOME/$tgz/$(date +"gcc-%Y-%m-%d-%H-%M").csv
 done
+
+рубль.10
+молоко дроде бутылки на рубдь
+10к
+
+1.10-1=10
+
+x-y
+1.10
+
