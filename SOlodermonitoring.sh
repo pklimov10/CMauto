@@ -55,6 +55,6 @@ USED_RSUBD_CM5=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJ
 RSUBD_CMJ=`$my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c "select count(unid) from so_beards where isactive = true and original_type in ('SYS_ORGANIZATION', 'SYS_DEPARTMENT', 'SYS_HUMAN', 'SYS_HUMAN_HEAD', 'SYS_ROLE')" |grep -v count`
 let OTVER_CM5=$USED_RSUBD_CM5-6000
 let OTVET=OTVER_CM5-RSUBD_CMJ
-echo 'Колизия в данных составляет' $OTVET 'может быть но не больш 800'
+echo 'Колизия в данных составляет:' $OTVET 'и не может больш 800'
 echo  'Отсечки  SOloader'
 $my_java_home -cp $JDBCFILELOCATION":/"  PostgresqlQueryExecuteJDBC  -h $IP_CMJ -p $PORT_CMJ -U $DB_CMJ_USER -W $DB_CMJ_PASS -d $DB_CNJ_NAME -c "SELECT * FROM lch_scaninfo"
