@@ -1,0 +1,1 @@
+SELECT count(node_name) from cluster_node
