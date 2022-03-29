@@ -116,7 +116,7 @@ echo '## Список сереров по результам информаци�
 echo '###############################################################'
 
 #Получение юнидов из мониторинга
-pull=`cat $home/tmp/info.txt |jq .components[2].info.serverStamps | sed 's/"/ /;s/\"/ /g' | sed 's/}/ /g' | sed 's/{/ /g' | sed 's/:/ /g' | sed 's/,/ /g' |grep -v hiDigit |grep -v lowDigit  |sed s/' '//g |sed '/^$/d'`
+pull=`cat $home/tmp/info.txt |jq .components[0].info.serverStamps | sed 's/"/ /;s/\"/ /g' | sed 's/}/ /g' | sed 's/{/ /g' | sed 's/:/ /g' | sed 's/,/ /g' |grep -v hiDigit |grep -v lowDigit  |sed s/' '//g |sed '/^$/d'`
 for app in ${pull[*]}
         do
         $my_java_home -cp $JDBCFILELOCATION":/u01/CM/script/SoLoader/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c "SELECT node_name from cluster_node WHERE node_id = '$app'" |grep -v node_name
@@ -164,22 +164,22 @@ echo '#######################################################'
 echo '##                Очередь инвалидации                ##'
 echo '#######################################################'
 
-pull_1=`cat $home/tmp/info.txt |jq '.components[2].info.invalidationInfo | .invalidationQueueSizeMap' | sed 's/"/ /;s/\"/ /g' | sed 's/:/ /g' | sed 's/}/ /g' | sed 's/{/ /g' | sed 's/:/ /g' | sed 's/,/ /g' | sed 's/^.//' | sed 's/^.//' | sed 's/^.//' |sed '/^$/d' |awk '{print $1}'`
+pull_1=`cat $home/tmp/info.txt |jq '.components[0].info.invalidationInfo | .invalidationQueueSizeMap' | sed 's/"/ /;s/\"/ /g' | sed 's/:/ /g' | sed 's/}/ /g' | sed 's/{/ /g' | sed 's/:/ /g' | sed 's/,/ /g' | sed 's/^.//' | sed 's/^.//' | sed 's/^.//' |sed '/^$/d' |awk '{print $1}'`
 for app1 in ${pull_1[*]}
 do
 $my_java_home -cp $JDBCFILELOCATION":/u01/CM/script/SoLoader/"  PostgresqlQueryExecuteJDBC  -h $IP_CM5 -p $PORT_CM5 -U $DB_CM5_USER -W $DB_CM5_PASS -d $DB_CN5_NAME -c "SELECT node_id, node_name from cluster_node WHERE node_id = '$app1'" |grep -v node_name |grep -v node_id  >> $home/tmp/ssql.txt
 done
 
-cat $home/tmp/info.txt |jq '.components[2].info.invalidationInfo | .invalidationQueueSizeMap' | sed 's/"/ /;s/\"/ /g' | sed 's/:/ /g' | sed 's/}/ /g' | sed 's/{/ /g' | sed 's/:/ /g' | sed 's/,/ /g' | sed 's/^.//' | sed 's/^.//' | sed 's/^.//' |sed '/^$/d' > $home/tmp/components.txt
+cat $home/tmp/info.txt |jq '.components[0].info.invalidationInfo | .invalidationQueueSizeMap' | sed 's/"/ /;s/\"/ /g' | sed 's/:/ /g' | sed 's/}/ /g' | sed 's/{/ /g' | sed 's/:/ /g' | sed 's/,/ /g' | sed 's/^.//' | sed 's/^.//' | sed 's/^.//' |sed '/^$/d' > $home/tmp/components.txt
 
 join $home/tmp/ssql.txt $home/tmp/components.txt
 
 #Выаодим poolSize
-poolSize=`cat $home/tmp/info.txt |jq '.components[2].info.invalidationInfo | .invalidationThreadPoolExecutorInfo' |grep poolSize |awk '{print $2}' | sed 's/,/ /g'`
+poolSize=`cat $home/tmp/info.txt |jq '.components[0].info.invalidationInfo | .invalidationThreadPoolExecutorInfo' |grep poolSize |awk '{print $2}' | sed 's/,/ /g'`
 #Выаодим queueSize
-queueSize=`cat $home/tmp/info.txt |jq '.components[2].info.invalidationInfo | .invalidationThreadPoolExecutorInfo' |grep queueSize |awk '{print $2}' | sed 's/,/ /g'`
+queueSize=`cat $home/tmp/info.txt |jq '.components[0].info.invalidationInfo | .invalidationThreadPoolExecutorInfo' |grep queueSize |awk '{print $2}' | sed 's/,/ /g'`
 #Выаодим activeCount
-activeCount=`cat $home/tmp/info.txt |jq '.components[2].info.invalidationInfo | .invalidationThreadPoolExecutorInfo' |grep activeCount |awk '{print $2}' | sed 's/,/ /g'`
+activeCount=`cat $home/tmp/info.txt |jq '.components[0].info.invalidationInfo | .invalidationThreadPoolExecutorInfo' |grep activeCount |awk '{print $2}' | sed 's/,/ /g'`
 echo "poolSize $poolSize - кол-во потоков, которые будут разгребать инвалидации "
 echo "queueSize $queueSize - очередь заданий на инвалидацию"
 echo "activeCount $activeCount - сколько в данную секунду работает потоков из poolSize"
