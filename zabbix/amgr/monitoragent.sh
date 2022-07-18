@@ -1,8 +1,14 @@
 #!/bin/bash
-
+#Путь до WildflyHome например /opt/wildfly
+WFHOME=
+my_java_home=`systemctl status wildfly | grep Standalone  |awk '{print $2}'`
 #Каталог куда сохранаем результаты отработки
 home=/u01/CM/Error/
-
+#Опредялем дравйер для РСУБД
+#JDBCDRIVERNAME=`cat $STANDALONEXML |grep -A 30 'pool-name="CM5"'  |grep driver | sed 's/</ /g; s/>/ /g'  |grep -v 'name="h2"' |awk '{print $2}'`
+#Формируем путь до дравйера для РСУБД
+#JDBCFILELOCATION=$WFHOME/standalone/deployments/$JDBCDRIVERNAME
+JDBCFILELOCATION=$WFHOME/standalone/deployments/postgresql-42.2.5.jar
 #ip бд от амгр
 IP_AMGR=
 #порт бд от амгр
@@ -90,7 +96,7 @@ echo Завести заявки в jira на проблемные агенты,
 echo Убедиться, что нет накопления в очередях
 else
   echo '#######################################################'
-  echo  ошибок в агентах AUSUP за 20 минут не обноружено #не чего не делаем выходим из скрипта
+  echo  ошибок в агентах AUSUP за 20 минут не обнаружено #не чего не делаем выходим из скрипта
 fi
 
 $my_java_home -cp $JDBCFILELOCATION":/u01/CM/script/SoLoader/"  PostgresqlQueryExecuteJDBC  -h $IP_AMGR -p $PORT_AMGR -U $DB_AMGR_USER -W $DB_AMGR_PASS -d $DB_AMGR_NAME -c "WITH agent_list AS (SELECT DISTINCT ON(1) trigger.title , amm.execution_status FROM am_trigger_executions amm JOIN am_agent_trigger trigger ON trigger.id = amm.owner JOIN am_trigger_agent_exec exec ON exec.owner = amm.id JOIN am_agent_exec_log log ON log.owner = exec.id JOIN domain_object_type_id domain ON domain.id = trigger.id_type WHERE domain.name = 'am_sched_agent_trigger' AND trigger.enabled = '1' ORDER BY 1 , amm.created_date DESC) SELECT * FROM agent_list WHERE execution_status = 'ERROR';" |grep -v title |grep -v execution_status |grep -v created_date > $home/tmp/err3.txt
@@ -110,7 +116,7 @@ echo Завести заявки в jira на проблемные агенты,
 echo Убедиться, что нет накопления в очередях
 else
   echo '#######################################################'
-  echo  Ошибок в агентах по расписанию не обнвружено #не чего не делаем выходим из скрипта
+  echo  Ошибок в агентах по расписанию не обнаружено #не чего не делаем выходим из скрипта
 fi
 
 $my_java_home -cp $JDBCFILELOCATION":/u01/CM/script/SoLoader/"  PostgresqlQueryExecuteJDBC  -h $IP_AMGR -p $PORT_AMGR -U $DB_AMGR_USER -W $DB_AMGR_PASS -d $DB_AMGR_NAME -c "WITH agent_list AS (  SELECT DISTINCT ON(1)    trigger.title  , amm.execution_status  ,  amm.created_date  FROM    am_trigger_executions amm  JOIN am_agent_trigger trigger ON trigger.id = amm.owner  JOIN    am_trigger_agent_exec exec      ON exec.owner = amm.id  JOIN    am_agent_exec_log log      ON log.owner = exec.id  JOIN    domain_object_type_id domain      ON domain.id = trigger.id_type  WHERE    domain.name = 'am_sched_agent_trigger' AND    trigger.enabled = '1'  ORDER BY    1  , amm.created_date DESC)SELECT  * FROM  agent_list WHERE  execution_status = 'WAITING';" |grep -v title |grep -v execution_status |grep -v created_date > $home/tmp/err4.txt
